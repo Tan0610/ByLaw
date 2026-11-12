@@ -19,7 +19,7 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run test:js
-      - run: cargo test -p charter -p mock-ft
+      - run: cargo test -p bylaw -p mock-ft
 
   wasm:
     name: Build deployable wasm (cargo-near)
@@ -32,8 +32,8 @@ jobs:
       - name: Install cargo-near (official installer)
         run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/near/cargo-near/releases/latest/download/cargo-near-installer.sh | sh
       # cargo-near post-processes the wasm (wasm-opt, sign-ext lowering) so newer rustc output runs on the NEAR VM.
-      - name: Build charter
-        working-directory: contracts/charter
+      - name: Build bylaw
+        working-directory: contracts/bylaw
         run: cargo near build non-reproducible-wasm --no-abi
       - name: Build mock-ft
         working-directory: contracts/mock-ft

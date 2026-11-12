@@ -1,9 +1,9 @@
-//! NEP-297 events. Charter events use standard "charter" version "1.0.0" with field names
+//! NEP-297 events. ByLaw events use standard "bylaw" version "1.0.0" with field names
 //! exactly as in docs/INTERFACES.md section 2.1. NFT events use standard "nep171" 1.2.0.
 use near_sdk::env;
 use near_sdk::serde_json::{json, Value};
 
-pub const STANDARD: &str = "charter";
+pub const STANDARD: &str = "bylaw";
 pub const VERSION: &str = "1.0.0";
 
 pub fn emit_std(standard: &str, version: &str, event: &str, data: Value) {

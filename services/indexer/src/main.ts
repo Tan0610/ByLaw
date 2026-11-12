@@ -1,6 +1,6 @@
 // Entry: `node src/main.ts [serve|reindex]`. Env: INDEXER_MODE=fake|near, DATABASE_URL, PORT, POLL_MS, see .env names in INTERFACES.md.
-import { FakeContract, NearContractClient, seedDemoWorld } from '@charter/near-client';
-import type { ContractClient } from '@charter/near-client';
+import { FakeContract, NearContractClient, seedDemoWorld } from '@bylaw/near-client';
+import type { ContractClient } from '@bylaw/near-client';
 import { createIndexerApp, dbPathFromUrl } from './index.ts';
 
 const env = process.env;
@@ -18,8 +18,8 @@ if (mode === 'fake') {
   cfg = { contract_id: fake.contractId, dao_id: fake.ownerId, token_id: fake.tokenId };
   log('warn', 'INDEXER_MODE=fake: in-memory contract with demo agents, no network');
 } else {
-  const contractId = env.CHARTER_CONTRACT_ID;
-  if (!contractId) { log('error', 'CHARTER_CONTRACT_ID is required in near mode'); process.exit(2); }
+  const contractId = env.BYLAW_CONTRACT_ID;
+  if (!contractId) { log('error', 'BYLAW_CONTRACT_ID is required in near mode'); process.exit(2); }
   const network = env.NEAR_NETWORK ?? 'testnet';
   const rpcUrl = env.NEAR_RPC_URL || (network === 'mainnet' ? 'https://rpc.mainnet.near.org' : 'https://rpc.testnet.near.org');
   client = new NearContractClient({ rpcUrl, contractId, tokenId: env.TOKEN_ID ?? '' });

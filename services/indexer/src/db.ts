@@ -23,7 +23,7 @@ export class Db {
       CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, state TEXT NOT NULL, customer TEXT NOT NULL, json TEXT NOT NULL, meta TEXT NOT NULL DEFAULT '{}');
       CREATE TABLE IF NOT EXISTS spends (id TEXT PRIMARY KEY, json TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS seats (token_id TEXT PRIMARY KEY, json TEXT NOT NULL);
-      CREATE TABLE IF NOT EXISTS charters (version INTEGER PRIMARY KEY, json TEXT NOT NULL, seen_ns TEXT NOT NULL);
+      CREATE TABLE IF NOT EXISTS bylaws (version INTEGER PRIMARY KEY, json TEXT NOT NULL, seen_ns TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS events (
         seq INTEGER PRIMARY KEY AUTOINCREMENT, ekey TEXT UNIQUE, type TEXT NOT NULL, id TEXT NOT NULL,
         job_id TEXT, ts_ns TEXT NOT NULL, data TEXT NOT NULL);
@@ -35,7 +35,7 @@ export class Db {
 
   /** Chain-derived tables are wiped by reindex; artifacts (off-chain, keyed by hash) are kept. */
   wipeChainData(): void {
-    this.sql.exec('DELETE FROM agents; DELETE FROM jobs; DELETE FROM spends; DELETE FROM seats; DELETE FROM charters; DELETE FROM events; DELETE FROM cursors;');
+    this.sql.exec('DELETE FROM agents; DELETE FROM jobs; DELETE FROM spends; DELETE FROM seats; DELETE FROM bylaws; DELETE FROM events; DELETE FROM cursors;');
   }
 
   getJson<T>(table: 'agents' | 'spends' | 'seats', key: string): T | null {
@@ -75,11 +75,11 @@ export class Db {
     return this.sql.prepare(sql).all(...args) as { json: string; meta: string }[];
   }
 
-  putCharter(version: number, json: string, seenNs: string): void {
-    this.sql.prepare('INSERT OR IGNORE INTO charters (version, json, seen_ns) VALUES (?, ?, ?)').run(version, json, seenNs);
+  putByLaw(version: number, json: string, seenNs: string): void {
+    this.sql.prepare('INSERT OR IGNORE INTO bylaws (version, json, seen_ns) VALUES (?, ?, ?)').run(version, json, seenNs);
   }
-  charters(): { version: number; json: string; seen_ns: string }[] {
-    return this.sql.prepare('SELECT version, json, seen_ns FROM charters ORDER BY version').all() as { version: number; json: string; seen_ns: string }[];
+  bylaws(): { version: number; json: string; seen_ns: string }[] {
+    return this.sql.prepare('SELECT version, json, seen_ns FROM bylaws ORDER BY version').all() as { version: number; json: string; seen_ns: string }[];
   }
 
   /** Returns the new event row, or null if `ekey` was already recorded. */

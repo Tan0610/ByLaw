@@ -1,23 +1,23 @@
 import type {
-  Agent, AppConfig, CharterParams, CharterVersion, DaoProposal, Job, Report, Seat, Spend, TimelineEvent,
+  Agent, AppConfig, ByLawParams, ByLawVersion, DaoProposal, Job, Report, Seat, Spend, TimelineEvent,
 } from "../lib/types";
 
 const MIN = 60_000;
 export const T0 = Date.parse("2026-11-11T09:00:00Z");
 export const iso = (offsetMin: number) => new Date(T0 + offsetMin * MIN).toISOString();
 
-export const CONTRACT = "charter.demo.testnet";
-export const DAO = "charter-dao.sputnikv2.testnet";
+export const CONTRACT = "bylaw.demo.testnet";
+export const DAO = "bylaw-dao.sputnikv2.testnet";
 export const TOKEN = "tusd.demo.testnet";
 export const COUNCIL = ["ana.demo.testnet", "dev.demo.testnet", "mem.demo.testnet"];
 
 export const config: AppConfig = {
   contract_id: CONTRACT, dao_id: DAO, token_id: TOKEN,
   guardians: ["guardian.demo.testnet", "ana.demo.testnet"],
-  charter: { version: 2, text_hash: "0x" + "b2".repeat(32) },
+  bylaw: { version: 2, text_hash: "0x" + "b2".repeat(32) },
 };
 
-export const CHARTER_V1 = `# Charter of NEAR Contract Health Briefs
+export const BYLAW_V1 = `# ByLaw of NEAR Contract Health Briefs
 
 1. Purpose. We sell short, verifiable health briefs for NEAR contracts.
 2. Agents act inside budgets. No agent may spend beyond its earned budget.
@@ -25,7 +25,7 @@ export const CHARTER_V1 = `# Charter of NEAR Contract Health Briefs
 4. Revenue. Every accepted job is split by the parameters below.
 5. Safety. Any guardian may freeze an agent. Only the DAO may unfreeze.`;
 
-export const CHARTER_V2 = `# Charter of NEAR Contract Health Briefs
+export const BYLAW_V2 = `# ByLaw of NEAR Contract Health Briefs
 
 1. Purpose. We sell short, verifiable health briefs for NEAR contracts.
 2. Agents act inside budgets. No agent may spend beyond its earned budget.
@@ -34,7 +34,7 @@ export const CHARTER_V2 = `# Charter of NEAR Contract Health Briefs
 5. Safety. Any guardian may freeze an agent. Only the DAO may unfreeze.
 6. Procurement. Vendors must be on the DAO allowlist; spends of 10 tUSD or more need DAO approval.`;
 
-export const CHARTER_V3 = `# Charter of NEAR Contract Health Briefs
+export const BYLAW_V3 = `# ByLaw of NEAR Contract Health Briefs
 
 1. Purpose. We sell short, verifiable health briefs for NEAR contracts.
 2. Agents act inside budgets. No agent may spend beyond its earned budget.
@@ -44,8 +44,8 @@ export const CHARTER_V3 = `# Charter of NEAR Contract Health Briefs
 6. Procurement. Vendors must be on the DAO allowlist; spends of 5 tUSD or more need DAO approval.
 7. Reputation. Two rejected briefs in a row freeze the producer automatically.`;
 
-export const charter: CharterParams = {
-  version: 2, text: CHARTER_V2, text_hash: config.charter.text_hash,
+export const bylaw: ByLawParams = {
+  version: 2, text: BYLAW_V2, text_hash: config.bylaw.text_hash,
   min_price: "10000000", max_price: "500000000",
   bid_window_ns: "120000000000", submit_window_ns: "900000000000", review_window_ns: "600000000000",
   max_bid_bps: 9000,
@@ -55,24 +55,24 @@ export const charter: CharterParams = {
   per_tx_cap: "30000000", approval_threshold: "10000000",
 };
 
-export const charterHistory: CharterVersion[] = [
-  { version: 1, text: CHARTER_V1, text_hash: "0x" + "a1".repeat(32), changed_at_iso: iso(-60 * 48), note: "Initial charter, set at deploy" },
-  { version: 2, text: CHARTER_V2, text_hash: config.charter.text_hash, changed_at_iso: iso(-60 * 5), proposal_id: 4, note: "Add procurement rule" },
+export const bylawHistory: ByLawVersion[] = [
+  { version: 1, text: BYLAW_V1, text_hash: "0x" + "a1".repeat(32), changed_at_iso: iso(-60 * 48), note: "Initial bylaw, set at deploy" },
+  { version: 2, text: BYLAW_V2, text_hash: config.bylaw.text_hash, changed_at_iso: iso(-60 * 5), proposal_id: 4, note: "Add procurement rule" },
 ];
 
-export const amendedCharter = { text: CHARTER_V3, hash: "0x" + "c3".repeat(32) };
+export const amendedByLaw = { text: BYLAW_V3, hash: "0x" + "c3".repeat(32) };
 
 const A = (n: number) => `${n}`;
 export const agents: Agent[] = [
-  { token_id: "1", account: "sales-1.charter.demo.testnet", kind: "Sales", state: "Active", owner: "ana.demo.testnet", rep: 120, delivered: 4, rejected: 0,
+  { token_id: "1", account: "sales-1.bylaw.demo.testnet", kind: "Sales", state: "Active", owner: "ana.demo.testnet", rep: 120, delivered: 4, rejected: 0,
     budget: "0", win_spent: "0", win_start_iso: iso(-300), earnings: "28000000" },
-  { token_id: "2", account: "analyst-1.charter.demo.testnet", kind: "Analyst", state: "Active", owner: "ben.demo.testnet", rep: 140, delivered: 5, rejected: 1,
+  { token_id: "2", account: "analyst-1.bylaw.demo.testnet", kind: "Analyst", state: "Active", owner: "ben.demo.testnet", rep: 140, delivered: 5, rejected: 1,
     budget: "34000000", win_spent: "12000000", win_start_iso: iso(-300), earnings: "220000000" },
-  { token_id: "3", account: "analyst-2.charter.demo.testnet", kind: "Analyst", state: "Active", owner: "cara.demo.testnet", rep: 100, delivered: 2, rejected: 0,
+  { token_id: "3", account: "analyst-2.bylaw.demo.testnet", kind: "Analyst", state: "Active", owner: "cara.demo.testnet", rep: 100, delivered: 2, rejected: 0,
     budget: "30000000", win_spent: "5000000", win_start_iso: iso(-300), earnings: "110000000" },
-  { token_id: "4", account: "reviewer-1.charter.demo.testnet", kind: "Reviewer", state: "Active", owner: "dev.demo.testnet", rep: 130, delivered: 7, rejected: 0,
+  { token_id: "4", account: "reviewer-1.bylaw.demo.testnet", kind: "Reviewer", state: "Active", owner: "dev.demo.testnet", rep: 130, delivered: 7, rejected: 0,
     budget: "0", win_spent: "0", win_start_iso: iso(-300), earnings: "56000000" },
-  { token_id: "5", account: "treasurer-1.charter.demo.testnet", kind: "Treasurer", state: "Active", owner: DAO, rep: 110, delivered: 3, rejected: 0,
+  { token_id: "5", account: "treasurer-1.bylaw.demo.testnet", kind: "Treasurer", state: "Active", owner: DAO, rep: 110, delivered: 3, rejected: 0,
     budget: "31000000", win_spent: "9000000", win_start_iso: iso(-300), earnings: "0" },
 ];
 void A;
@@ -92,7 +92,7 @@ export const claimable: Record<string, string> = {
 };
 
 export const report: Report = {
-  schema: "charter.report.v1", target: "dex.demo.testnet",
+  schema: "bylaw.report.v1", target: "dex.demo.testnet",
   facts: {
     code_hash: "5Hq8x2eY9bK1mQ7zV3nLwPaTRfD6cJuG4sXo2yZtNvWk", storage_usage: 48213, balance: "152300000000000000000000000",
     full_access_keys: 0, function_call_keys: 2, upgradeable: false, fetched_at_block: 187420931,
@@ -111,8 +111,8 @@ export const jobs: Job[] = [
     created_iso: iso(-180), deadline_iso: iso(-150), sales: "1", winner: "2", reviewer: "4",
     deliverable_hash: REPORT_HASH, uri: `artifact:${REPORT_HASH}`, attestation: null, attempts: 0,
     bids: [
-      bid("2", "62000000", 62 * 1000 / 1140, -176, "analyst-1.charter.demo.testnet"),
-      bid("3", "64000000", 64 * 1000 / 1100, -175, "analyst-2.charter.demo.testnet"),
+      bid("2", "62000000", 62 * 1000 / 1140, -176, "analyst-1.bylaw.demo.testnet"),
+      bid("3", "64000000", 64 * 1000 / 1100, -175, "analyst-2.bylaw.demo.testnet"),
     ],
     review: { approve: true, reason: "Facts recomputed at block 187420931 and matched." },
     credits: { reviewer: "8000000", producer: "55000000", sales: "7000000", seats: "15000000", treasury: "15000000" },
@@ -120,7 +120,7 @@ export const jobs: Job[] = [
   {
     id: "2", customer: "customer.demo.testnet", target: "vault.demo.testnet", price: "80000000", state: "Open",
     created_iso: iso(-4), deadline_iso: iso(-2 + 2), sales: "1", winner: null, reviewer: null, attempts: 0,
-    bids: [bid("2", "60000000", 60 * 1000 / 1140, -1, "analyst-1.charter.demo.testnet")],
+    bids: [bid("2", "60000000", 60 * 1000 / 1140, -1, "analyst-1.bylaw.demo.testnet")],
   },
 ];
 
@@ -140,15 +140,15 @@ export function timelineFor(j: Job): TimelineEvent[] {
 }
 
 export const spends: Spend[] = [
-  { id: "1", agent: "5", agent_account: "treasurer-1.charter.demo.testnet", vendor: "data-vendor.demo.testnet", amount: "4000000",
+  { id: "1", agent: "5", agent_account: "treasurer-1.bylaw.demo.testnet", vendor: "data-vendor.demo.testnet", amount: "4000000",
     job: "1", memo: "Shared on-chain dataset (collective purchase)", state: "Paid", reason: "Paid", ts_iso: iso(-170) },
-  { id: "2", agent: "5", agent_account: "treasurer-1.charter.demo.testnet", vendor: "data-vendor.demo.testnet", amount: "5000000",
+  { id: "2", agent: "5", agent_account: "treasurer-1.bylaw.demo.testnet", vendor: "data-vendor.demo.testnet", amount: "5000000",
     job: "2", memo: "Key-usage snapshot", state: "Paid", reason: "Paid", ts_iso: iso(-30) },
-  { id: "3", agent: "5", agent_account: "treasurer-1.charter.demo.testnet", vendor: "data-vendor.demo.testnet", amount: "15000000",
+  { id: "3", agent: "5", agent_account: "treasurer-1.bylaw.demo.testnet", vendor: "data-vendor.demo.testnet", amount: "15000000",
     job: null, memo: "Annual data subscription (above approval threshold)", state: "Pending", reason: "Pending: waiting for DAO approval", ts_iso: iso(-20) },
-  { id: "4", agent: "5", agent_account: "treasurer-1.charter.demo.testnet", vendor: "data-vendor.demo.testnet", amount: "29000000",
+  { id: "4", agent: "5", agent_account: "treasurer-1.bylaw.demo.testnet", vendor: "data-vendor.demo.testnet", amount: "29000000",
     job: null, memo: "Attempted overspend (attack scene)", state: "Rejected", reason: "Rejected: window budget exceeded", ts_iso: iso(-12) },
-  { id: "5", agent: "5", agent_account: "treasurer-1.charter.demo.testnet", vendor: "shady-vendor.testnet", amount: "2000000",
+  { id: "5", agent: "5", agent_account: "treasurer-1.bylaw.demo.testnet", vendor: "shady-vendor.testnet", amount: "2000000",
     job: null, memo: "Attempted payment to a non-allowlisted vendor (attack scene)", state: "Rejected", reason: "Rejected: vendor not allowlisted", ts_iso: iso(-11) },
 ];
 
@@ -163,7 +163,7 @@ export function proposalsInitial(): DaoProposal[] {
   });
   return [
     {
-      id: 4, proposer: "ana.demo.testnet", description: "Add procurement rule to the charter", kind: fc("set_charter", { params: "v2" }),
+      id: 4, proposer: "ana.demo.testnet", description: "Add procurement rule to the bylaw", kind: fc("set_bylaw", { params: "v2" }),
       status: "Approved", vote_counts: { council: ["3", "0", "0"] },
       votes: { "ana.demo.testnet": "Approve", "dev.demo.testnet": "Approve", "mem.demo.testnet": "Approve" },
       submission_time: String((T0 - 60 * 5 * MIN) * 1e6),

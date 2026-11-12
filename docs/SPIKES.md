@@ -17,7 +17,7 @@ Runbook: `docs/demo/TESTNET_RUNBOOK.md` steps 0 and 1. `npm run bootstrap -w scr
 | Who may propose (council only, or anyone) | not run | |
 | Fallback used (`dao.globals.primitives.testnet` or minimal council) | not run | |
 
-### S2: FunctionCall proposal into the Charter contract
+### S2: FunctionCall proposal into the ByLaw contract
 Runbook step 3. The scripts attach 150 Tgas to the inner call and 300 Tgas to `act_proposal`.
 
 | Question | Result | Date / tx link |

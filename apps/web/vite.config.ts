@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   // Read VITE_* from the repo-root .env (one env file for the whole project).
   envDir: "../..",
-  // The DAO page reads proposal templates from contracts/charter/dao-proposals (outside this package).
+  // The DAO page reads proposal templates from contracts/bylaw/dao-proposals (outside this package).
   server: { fs: { allow: ["../.."] } },
   build: { chunkSizeWarningLimit: 1800 },
   define: { global: "globalThis" },

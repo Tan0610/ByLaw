@@ -1,11 +1,11 @@
 import { emitMockPing } from "../lib/stream";
 import { waterfall } from "../lib/format";
-import type { Agent, CharterParams, CharterVersion, DaoProposal, Job, Report, Seat, Spend, Stats, TimelineEvent } from "../lib/types";
+import type { Agent, ByLawParams, ByLawVersion, DaoProposal, Job, Report, Seat, Spend, Stats, TimelineEvent } from "../lib/types";
 import * as F from "./fixtures";
 
 const clone = <T,>(v: T): T => structuredClone(v);
 
-function budgetOf(a: Agent, c: CharterParams): string {
+function budgetOf(a: Agent, c: ByLawParams): string {
   if (a.kind !== "Analyst" && a.kind !== "Treasurer") return "0";
   const b = BigInt(c.base_budget) + (BigInt(c.per_rep_budget) * BigInt(a.rep)) / 100n;
   const m = BigInt(c.max_budget);
@@ -13,8 +13,8 @@ function budgetOf(a: Agent, c: CharterParams): string {
 }
 
 class MockStore {
-  charter!: CharterParams;
-  history!: CharterVersion[];
+  bylaw!: ByLawParams;
+  history!: ByLawVersion[];
   agents!: Agent[];
   seats!: Seat[];
   jobs!: Job[];
@@ -34,8 +34,8 @@ class MockStore {
   constructor() { this.reset(); }
 
   reset() {
-    this.charter = clone(F.charter);
-    this.history = clone(F.charterHistory);
+    this.bylaw = clone(F.bylaw);
+    this.history = clone(F.bylawHistory);
     this.agents = clone(F.agents);
     this.seats = clone(F.seats);
     this.jobs = clone(F.jobs);
@@ -46,7 +46,7 @@ class MockStore {
     this.artifacts = { [F.REPORT_HASH]: clone(F.report) };
     this.stats = clone(F.stats);
     this.nextJob = 3; this.nextProposal = 6; this.nextSpend = 6;
-    this.agents.forEach((a) => { a.budget = budgetOf(a, this.charter); });
+    this.agents.forEach((a) => { a.budget = budgetOf(a, this.bylaw); });
   }
 
   ping(type: string, id?: string) { emitMockPing({ type, id }); }
@@ -61,8 +61,8 @@ class MockStore {
 
   postJob(customer: string, amount: string, target: string): { ok: boolean; error?: string; id?: string } {
     const p = BigInt(amount);
-    if (p < BigInt(this.charter.min_price) || p > BigInt(this.charter.max_price))
-      return { ok: false, error: "Price outside charter band: the whole amount is refunded by ft_on_transfer." };
+    if (p < BigInt(this.bylaw.min_price) || p > BigInt(this.bylaw.max_price))
+      return { ok: false, error: "Price outside bylaw band: the whole amount is refunded by ft_on_transfer." };
     if (!/^[a-z0-9._-]{2,64}$/.test(target)) return { ok: false, error: "Target must be a NEAR account id." };
     const id = String(this.nextJob++);
     const job: Job = {
@@ -92,7 +92,7 @@ class MockStore {
   advanceJob(id: string): Job["state"] | null {
     const j = this.job(id);
     if (!j) return null;
-    const c = this.charter;
+    const c = this.bylaw;
     switch (j.state) {
       case "Posted":
         j.state = "Open"; j.sales = "1";
@@ -131,7 +131,7 @@ class MockStore {
   }
 
   private settle(j: Job) {
-    const credits = waterfall(j.price, this.charter.split);
+    const credits = waterfall(j.price, this.bylaw.split);
     j.credits = credits; j.state = "Settled";
     const owner = (id?: string | null) => this.agent(id ?? "")?.owner;
     const add = (acct: string | undefined, amt: string) => {
@@ -148,7 +148,7 @@ class MockStore {
     this.stats.claimable_total = (BigInt(this.stats.claimable_total) + BigInt(credits.reviewer) + BigInt(credits.producer) + BigInt(credits.sales)).toString();
     this.stats.jobs_settled += 1;
     const w = this.agent(j.winner ?? "");
-    if (w) { w.rep += this.charter.rep_gain; w.delivered += 1; w.earnings = (BigInt(w.earnings) + BigInt(credits.producer)).toString(); w.budget = budgetOf(w, this.charter); }
+    if (w) { w.rep += this.bylaw.rep_gain; w.delivered += 1; w.earnings = (BigInt(w.earnings) + BigInt(credits.producer)).toString(); w.budget = budgetOf(w, this.bylaw); }
     this.log(j.id, "job_settled", { price: j.price, credits });
     this.ping("agents"); this.ping("stats"); this.ping("seats");
   }
@@ -175,11 +175,11 @@ class MockStore {
     if (!act) return;
     let args: Record<string, any> = {}; // eslint-disable-line @typescript-eslint/no-explicit-any
     try { args = JSON.parse(atob(act.args)); } catch { /* ignore */ }
-    if (act.method_name === "set_charter") {
-      const text = typeof args.params?.text === "string" && args.params.text.length > 60 ? args.params.text : F.amendedCharter.text;
-      this.charter = { ...this.charter, version: this.charter.version + 1, text, text_hash: F.amendedCharter.hash };
-      this.history.push({ version: this.charter.version, text, text_hash: this.charter.text_hash, changed_at_iso: new Date().toISOString(), proposal_id: p.id, note: p.description });
-      this.ping("charter");
+    if (act.method_name === "set_bylaw") {
+      const text = typeof args.params?.text === "string" && args.params.text.length > 60 ? args.params.text : F.amendedByLaw.text;
+      this.bylaw = { ...this.bylaw, version: this.bylaw.version + 1, text, text_hash: F.amendedByLaw.hash };
+      this.history.push({ version: this.bylaw.version, text, text_hash: this.bylaw.text_hash, changed_at_iso: new Date().toISOString(), proposal_id: p.id, note: p.description });
+      this.ping("bylaw");
     } else if (act.method_name === "approve_spend") {
       const s = this.spends.find((x) => x.id === String(args.id));
       if (s && s.state === "Pending") { s.state = "Paid"; s.reason = "Paid after DAO approval"; this.ping("spends"); }

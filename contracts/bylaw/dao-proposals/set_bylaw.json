@@ -1,0 +1,49 @@
+{
+  "_comment": "Sputnik v2 add_proposal template for bylaw.set_bylaw. Replace bylaw.YOU.testnet and the example args, then recompute \"args\" = base64(JSON.stringify(args_json)). Call <dao>.sputnikv2.testnet add_proposal with this \"proposal\" object and the DAO proposal bond as deposit.",
+  "_args_json": {
+    "params": {
+      "text": "ByLaw v2: agents run the business within these rules. Budgets doubled.",
+      "text_hash": "0x1bebb4ecfda49da723875dc8d988e51af7920923e5f96c2ffdc9a6be659f6327",
+      "min_price": "1000000",
+      "max_price": "1000000000",
+      "bid_window_ns": "600000000000",
+      "submit_window_ns": "3600000000000",
+      "review_window_ns": "3600000000000",
+      "max_bid_bps": 10000,
+      "split": {
+        "reviewer": 800,
+        "producer": 5500,
+        "sales": 700,
+        "treasury": 1500,
+        "seats": 1500
+      },
+      "rep_start": 100,
+      "rep_gain": 10,
+      "rep_loss": 30,
+      "rep_expire_loss": 20,
+      "rep_freeze_below": 50,
+      "base_budget": "40000000",
+      "per_rep_budget": "20000000",
+      "max_budget": "200000000",
+      "budget_window_ns": "3600000000000",
+      "per_tx_cap": "25000000",
+      "approval_threshold": "15000000"
+    }
+  },
+  "proposal": {
+    "description": "ByLaw: Amend the bylaw (version = old + 1). text_hash must equal sha256(text).",
+    "kind": {
+      "FunctionCall": {
+        "receiver_id": "bylaw.YOU.testnet",
+        "actions": [
+          {
+            "method_name": "set_bylaw",
+            "args": "eyJwYXJhbXMiOnsidGV4dCI6IkJ5TGF3IHYyOiBhZ2VudHMgcnVuIHRoZSBidXNpbmVzcyB3aXRoaW4gdGhlc2UgcnVsZXMuIEJ1ZGdldHMgZG91YmxlZC4iLCJ0ZXh0X2hhc2giOiIweDFiZWJiNGVjZmRhNDlkYTcyMzg3NWRjOGQ5ODhlNTFhZjc5MjA5MjNlNWY5NmMyZmZkYzlhNmJlNjU5ZjYzMjciLCJtaW5fcHJpY2UiOiIxMDAwMDAwIiwibWF4X3ByaWNlIjoiMTAwMDAwMDAwMCIsImJpZF93aW5kb3dfbnMiOiI2MDAwMDAwMDAwMDAiLCJzdWJtaXRfd2luZG93X25zIjoiMzYwMDAwMDAwMDAwMCIsInJldmlld193aW5kb3dfbnMiOiIzNjAwMDAwMDAwMDAwIiwibWF4X2JpZF9icHMiOjEwMDAwLCJzcGxpdCI6eyJyZXZpZXdlciI6ODAwLCJwcm9kdWNlciI6NTUwMCwic2FsZXMiOjcwMCwidHJlYXN1cnkiOjE1MDAsInNlYXRzIjoxNTAwfSwicmVwX3N0YXJ0IjoxMDAsInJlcF9nYWluIjoxMCwicmVwX2xvc3MiOjMwLCJyZXBfZXhwaXJlX2xvc3MiOjIwLCJyZXBfZnJlZXplX2JlbG93Ijo1MCwiYmFzZV9idWRnZXQiOiI0MDAwMDAwMCIsInBlcl9yZXBfYnVkZ2V0IjoiMjAwMDAwMDAiLCJtYXhfYnVkZ2V0IjoiMjAwMDAwMDAwIiwiYnVkZ2V0X3dpbmRvd19ucyI6IjM2MDAwMDAwMDAwMDAiLCJwZXJfdHhfY2FwIjoiMjUwMDAwMDAiLCJhcHByb3ZhbF90aHJlc2hvbGQiOiIxNTAwMDAwMCJ9fQ==",
+            "deposit": "0",
+            "gas": "50000000000000"
+          }
+        ]
+      }
+    }
+  }
+}

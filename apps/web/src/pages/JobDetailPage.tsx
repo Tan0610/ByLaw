@@ -2,14 +2,14 @@ import { Link, useParams } from "react-router-dom";
 import { Account, ErrorBox, Loading, PageHead, Stat, StateBadge, Table } from "../components/ui";
 import { JobSteps, Timeline, Waterfall } from "../components/viz";
 import { fmtTime, fmtToken, shortHash, waterfall } from "../lib/format";
-import { useAgents, useArtifact, useCharter, useJob, useTimeline } from "../lib/hooks";
+import { useAgents, useArtifact, useByLaw, useJob, useTimeline } from "../lib/hooks";
 
 export default function JobDetailPage() {
   const { id = "" } = useParams();
   const job = useJob(id);
   const timeline = useTimeline(id);
   const agents = useAgents();
-  const charter = useCharter();
+  const bylaw = useByLaw();
   const artifact = useArtifact(job.data?.deliverable_hash);
 
   if (job.isLoading) return <Loading what="job" />;
@@ -17,7 +17,7 @@ export default function JobDetailPage() {
   const j = job.data!;
   const name = (tid?: string | null) => agents.data?.find((a) => a.token_id === tid)?.account ?? (tid ? `agent #${tid}` : "none yet");
   const sortedBids = [...j.bids].sort((a, b) => (Number.isFinite(a.score) ? a.score : 1e18) - (Number.isFinite(b.score) ? b.score : 1e18));
-  const credits = j.credits ?? (charter.data ? waterfall(j.price, charter.data.split) : null);
+  const credits = j.credits ?? (bylaw.data ? waterfall(j.price, bylaw.data.split) : null);
 
   return (
     <>
@@ -74,7 +74,7 @@ export default function JobDetailPage() {
 
       <section className="card" aria-labelledby="wf">
         <h2 id="wf">Where the money goes</h2>
-        {credits ? <Waterfall price={j.price} credits={credits} preview={!j.credits} /> : <p className="muted">Loading charter split…</p>}
+        {credits ? <Waterfall price={j.price} credits={credits} preview={!j.credits} /> : <p className="muted">Loading bylaw split…</p>}
         {!j.credits && <p className="small muted">Not settled yet. Payouts are credited to owners' claimable balance when the reviewer approves.</p>}
       </section>
 

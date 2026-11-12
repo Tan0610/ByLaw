@@ -1,4 +1,4 @@
-import { listAllJobs } from '@charter/near-client';
+import { listAllJobs } from '@bylaw/near-client';
 import type { Agent, AgentContext } from '../runtime.ts';
 import { whoAmI } from '../runtime.ts';
 import { bidPrice } from '../strategy.ts';
@@ -31,12 +31,12 @@ export class AnalystAgent implements Agent {
     const me = await whoAmI(client);
     if (me.state !== 'Active') { log.debug('not active, idle', { state: me.state }); return; }
     const now = await client.nowNs();
-    const charter = await client.getCharter();
+    const bylaw = await client.getByLaw();
     for (const j of await listAllJobs(client)) {
       const jl = log.child({ job_id: j.id });
       if (j.state === 'Open' && now < BigInt(j.deadline_ns) && !j.bids.some((b) => b.agent === me.token_id)) {
         const price = bidPrice({
-          jobPrice: BigInt(j.price), maxBidBps: charter.max_bid_bps, rep: me.rep, repBaseline: charter.rep_start,
+          jobPrice: BigInt(j.price), maxBidBps: bylaw.max_bid_bps, rep: me.rep, repBaseline: bylaw.rep_start,
           aggressionBps: this.o.aggressionBps, costFloor: this.o.costFloor,
         });
         if (price === null) { jl.info('skip bid: cap below cost floor'); continue; }

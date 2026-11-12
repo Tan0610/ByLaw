@@ -1,7 +1,7 @@
 // Agent registration helper.
 // 1. Generates one ed25519 key pair per agent LOCALLY (no network) and writes them to secrets/ (git-ignored).
 // 2. Prints one DAO proposal per agent: register_agent(kind, name, owner_account, pubkey) with 0.5 NEAR attached.
-// The contract creates <name>.<charter> with ONLY a function-call key for the role's methods.
+// The contract creates <name>.<bylaw> with ONLY a function-call key for the role's methods.
 //   OWNERS=sales:ana.testnet,analyst1:ben.testnet,analyst2:cara.testnet,reviewer:dev.testnet,treasurer:<dao> \
 //   npm run register-agents -w scripts            (add --reuse to keep existing keys)
 import { generateKeyPairSync } from "node:crypto";
@@ -45,13 +45,13 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const keyFile = join(dir, "agent-keys.json");
   mkdirSync(dir, { recursive: true });
 
-  banner("Charter agent registration");
+  banner("ByLaw agent registration");
   let keys: Record<string, { publicKey: string; secretKey: string }> = {};
   if (flags.has("--reuse") && existsSync(keyFile)) keys = JSON.parse(readFileSync(keyFile, "utf8"));
   for (const a of AGENTS) keys[a.name] ??= newKeyPair();
   writeFileSync(keyFile, JSON.stringify(keys, null, 2), { mode: 0o600 });
   const envLines = AGENTS.flatMap((a) => [
-    `AGENT_${a.env}_ACCOUNT=${a.name}.${i.charter}`,
+    `AGENT_${a.env}_ACCOUNT=${a.name}.${i.bylaw}`,
     `AGENT_${a.env}_PRIVATE_KEY=${keys[a.name].secretKey}`,
   ]);
   writeFileSync(join(dir, "agents.env"), envLines.join("\n") + "\n", { mode: 0o600 });
@@ -60,11 +60,11 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
 
   for (const a of AGENTS) {
     const owner = owners[a.name] ?? (a.kind === "Treasurer" ? i.dao : `<${a.name}-owner>.testnet`);
-    printProposal(`Register ${a.kind} "${a.name}" -> ${a.name}.${i.charter}, NFT to ${owner}`, i,
+    printProposal(`Register ${a.kind} "${a.name}" -> ${a.name}.${i.bylaw}, NFT to ${owner}`, i,
       `Register ${a.kind} agent ${a.name} (earnings to ${owner})`,
       [{ method: "register_agent", args: { kind: a.kind, name: a.name, owner_account: owner, pubkey: keys[a.name].publicKey }, deposit: NEAR("0.5"), gas: "200000000000000" }]);
   }
   console.log("\nSeparation of duties: the reviewer's owner must differ from both analysts' owners.");
   console.log("Verify each key is function-call only and scoped to its role's methods:");
-  console.log(`  near account list-keys ${AGENTS[1].name}.${i.charter} network-config testnet now`);
+  console.log(`  near account list-keys ${AGENTS[1].name}.${i.bylaw} network-config testnet now`);
 }

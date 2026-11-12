@@ -48,7 +48,7 @@ type ModalLike = { show: () => void };
 
 export function WalletProvider({ children, initialMockAccount }: { children: ReactNode; initialMockAccount?: string | null }) {
   const [accountId, setAccountId] = useState<string | null>(
-    USE_MOCKS ? (initialMockAccount !== undefined ? initialMockAccount : lsGet("charter.mockAccount")) : null,
+    USE_MOCKS ? (initialMockAccount !== undefined ? initialMockAccount : lsGet("bylaw.mockAccount")) : null,
   );
   const [ready, setReady] = useState(USE_MOCKS);
   const selectorRef = useRef<SelectorLike | null>(null);
@@ -69,7 +69,7 @@ export function WalletProvider({ children, initialMockAccount }: { children: Rea
         network: NETWORK,
         modules: [setupMyNearWallet()],
       })) as unknown as SelectorLike;
-      const modal = setupModal(selector as never, { contractId: ENV_CONTRACT_ID || "charter.testnet" }) as unknown as ModalLike;
+      const modal = setupModal(selector as never, { contractId: ENV_CONTRACT_ID || "bylaw.testnet" }) as unknown as ModalLike;
       if (cancelled) return;
       selectorRef.current = selector;
       modalRef.current = modal;
@@ -84,18 +84,18 @@ export function WalletProvider({ children, initialMockAccount }: { children: Rea
   }, []);
 
   const connect = useCallback(() => {
-    if (USE_MOCKS) { const id = MOCK_ACCOUNTS[0].id; setAccountId(id); lsSet("charter.mockAccount", id); return; }
+    if (USE_MOCKS) { const id = MOCK_ACCOUNTS[0].id; setAccountId(id); lsSet("bylaw.mockAccount", id); return; }
     modalRef.current?.show();
   }, []);
 
   const disconnect = useCallback(async () => {
-    if (USE_MOCKS) { setAccountId(null); lsSet("charter.mockAccount", null); return; }
+    if (USE_MOCKS) { setAccountId(null); lsSet("bylaw.mockAccount", null); return; }
     const w = await selectorRef.current?.wallet();
     await w?.signOut();
     setAccountId(null);
   }, []);
 
-  const setMockAccount = useCallback((id: string) => { setAccountId(id); lsSet("charter.mockAccount", id); }, []);
+  const setMockAccount = useCallback((id: string) => { setAccountId(id); lsSet("bylaw.mockAccount", id); }, []);
 
   const call = useCallback(async (tx: TxRequest): Promise<TxResult> => {
     if (!accountId) return { ok: false, error: "Connect a wallet first." };

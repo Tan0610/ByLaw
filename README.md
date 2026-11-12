@@ -1,6 +1,6 @@
-# Charter
+# ByLaw
 
-**Charter makes a company's constitution executable.** Members write a charter, AI agents run the business inside it, and a NEAR contract enforces it: budgets, roles, escrow and the revenue split. Humans only set the constraints.
+**ByLaw makes a company's constitution executable.** Members write a bylaw, AI agents run the business inside it, and a NEAR contract enforces it: budgets, roles, escrow and the revenue split. Humans only set the constraints.
 
 Built at NEAR HACKATHON (November 2026). Testnet only.
 
@@ -13,7 +13,7 @@ Built at NEAR HACKATHON (November 2026). Testnet only.
 - AI-generated code: see docs/AI_DISCLOSURE.md.
 
 Status at the time of writing (2026-11-12), so you know exactly what you can check yourself:
-- The contract (`contracts/charter`) is written with `ABI.md`; it has **not been deployed** to testnet yet. Deployment, DAO creation and every signed transaction are done by a human with the runbook below.
+- The contract (`contracts/bylaw`) is written with `ABI.md`; it has **not been deployed** to testnet yet. Deployment, DAO creation and every signed transaction are done by a human with the runbook below.
 - Everything else runs offline today: the full story runs end to end on the in-memory `FakeContract` (`packages/near-client`), with the real indexer and the real agent loops, and the web app runs on mocks or against that stack.
 - Attestation (T4) and collective purchase pools (T3) are **not** in this build. The UI shows no attestation badge.
 
@@ -21,12 +21,12 @@ Status at the time of writing (2026-11-12), so you know exactly what you can che
 Teams want agents that earn and spend, but giving an agent a wallet is all-or-nothing. DAOs can hold money and vote, but they cannot run day-to-day work. Nothing ties the two together: who may spend what, who checks whose work, who gets paid, and how trust is earned over time.
 
 ## Solution
-- A **Sputnik DAO** owns the Charter contract and amends the charter by proposal.
-- Each agent is a **NEAR sub-account** with a function-call key limited to the Charter contract **and to the methods of its role**. The NEAR protocol rejects anything else before our code runs.
+- A **Sputnik DAO** owns the ByLaw contract and amends the bylaw by proposal.
+- Each agent is a **NEAR sub-account** with a function-call key limited to the ByLaw contract **and to the methods of its role**. The NEAR protocol rejects anything else before our code runs.
 - Each agent is an **NFT**; its owner receives the agent's earnings.
 - **Earned budgets:** spending limits rise with delivered work and fall after rejected work.
 - **Separation of duties:** a reviewer with a different owner recomputes the facts of every deliverable. Guardians can freeze any agent instantly; only the DAO can unfreeze.
-- **Programmable revenue:** each accepted job pays producer, reviewer, sales, treasury and seat holders by the charter split, conserved to the unit.
+- **Programmable revenue:** each accepted job pays producer, reviewer, sales, treasury and seat holders by the bylaw split, conserved to the unit.
 
 ## Quickstart: do X, see Y
 
@@ -36,9 +36,9 @@ Requirements: Node 24 or newer (the services run TypeScript natively; developed 
 ```
 npm run e2e:mock -w scripts
 ```
-You see a numbered transcript: a customer pays 100 tUSD, sales accepts, two analysts bid, the job is awarded, the report is submitted and reviewed, the waterfall splits 55 / 15 / 15 / 8 / 7 tUSD, the winner's budget rises, an owner and a seat holder claim, the treasurer buys data, then the attacks (spend above the per-tx cap, window overspend, non-allowlisted vendor) come back **Rejected and logged**, a guardian freezes the treasurer, the DAO amends the charter (with a text diff) and the solvency invariant still holds. It ends with `All checks passed.` and exit code 0.
+You see a numbered transcript: a customer pays 100 tUSD, sales accepts, two analysts bid, the job is awarded, the report is submitted and reviewed, the waterfall splits 55 / 15 / 15 / 8 / 7 tUSD, the winner's budget rises, an owner and a seat holder claim, the treasurer buys data, then the attacks (spend above the per-tx cap, window overspend, non-allowlisted vendor) come back **Rejected and logged**, a guardian freezes the treasurer, the DAO amends the bylaw (with a text diff) and the solvency invariant still holds. It ends with `All checks passed.` and exit code 0.
 
-This drives the real packages: `@charter/near-client` (`FakeContract`), `@charter/indexer` (REST queried in-process) and `@charter/agents` (`SalesAgent`, `AnalystAgent`, `ReviewerAgent`, `TreasurerAgent`).
+This drives the real packages: `@bylaw/near-client` (`FakeContract`), `@bylaw/indexer` (REST queried in-process) and `@bylaw/agents` (`SalesAgent`, `AnalystAgent`, `ReviewerAgent`, `TreasurerAgent`).
 
 ### 2. The web app on mock data (no backend)
 ```
@@ -46,7 +46,7 @@ npm run dev:mock -w apps/web
 ```
 Open http://localhost:5173. A yellow banner says "Mock mode". Pick an identity in the top-right selector:
 - **Customer** → Jobs → "Pay and post job": a new job appears and moves Posted → Open → Awarded → Submitted → Settled live; open it to see bids with scores, the reviewer decision, the waterfall and the report.
-- **Ana (council and guardian)** → DAO → approve proposal #5: at 2 of 3 votes it executes and spend #3 becomes Paid on the Treasury page. Create a charter amendment from a template; after two approvals the Charter page shows version 3 with a diff.
+- **Ana (council and guardian)** → DAO → approve proposal #5: at 2 of 3 votes it executes and spend #3 becomes Paid on the Treasury page. Create a bylaw amendment from a template; after two approvals the ByLaw page shows version 3 with a diff.
 - **Guardian** → Agents → "Freeze agent": the agent turns Frozen. As Customer the button is disabled.
 - **Ana** → Seats → "Credit to balance", then "Claim tUSD".
 
@@ -63,7 +63,7 @@ npm test -w apps/web          # 15 tests: customer, DAO, guardian, seats flows o
 npm test -w scripts           # e2e --mock as a test, key generation, proposal encoding
 npm run build -w apps/web
 ```
-Lane A and B: `cargo test -p charter`, `npm test -w packages/near-client`, `npm test -w services/indexer`, `npm test -w services/agents`.
+Lane A and B: `cargo test -p bylaw`, `npm test -w packages/near-client`, `npm test -w services/indexer`, `npm test -w services/agents`.
 
 If `vite`/`vitest` fail on Windows with `ERR_DLOPEN_FAILED ... rollup.win32-x64-msvc.node` (Windows Application Control blocking a native binary), run `npm run fix-rollup -w scripts`, which swaps in the WebAssembly build of rollup.
 
@@ -74,18 +74,18 @@ npm run bootstrap -w scripts         # create the Sputnik DAO, set guardians and
 npm run register-agents -w scripts   # generates agent keys locally into secrets/ (git-ignored), prints register_agent proposals
 npm run mint-seats -w scripts        # seat NFT proposal
 npm run fund-treasury -w scripts     # mint test tUSD and fund the treasury; customer job command
-npm run e2e -w scripts -- --check    # read-only check of the deployed contract (needs CHARTER_CONTRACT_ID)
+npm run e2e -w scripts -- --check    # read-only check of the deployed contract (needs BYLAW_CONTRACT_ID)
 ```
 Full steps: [docs/demo/TESTNET_RUNBOOK.md](docs/demo/TESTNET_RUNBOOK.md). Passing `--execute` is refused on purpose.
 
 ## Architecture
 ```
- Sputnik DAO  <name>.sputnikv2.testnet            (owner of Charter; council votes)
-      │ FunctionCall proposals (set_charter, register_agent, approve_spend, ...)
+ Sputnik DAO  <name>.sputnikv2.testnet            (owner of ByLaw; council votes)
+      │ FunctionCall proposals (set_bylaw, register_agent, approve_spend, ...)
       ▼
  ┌──────────────────────────────────────────────────────────────────────┐
- │ charter.<acct>.testnet  (Rust, near-sdk 5)                           │
- │  charter text+params · agent registry · NEP-171 (agents, seats)      │
+ │ bylaw.<acct>.testnet  (Rust, near-sdk 5)                           │
+ │  bylaw text+params · agent registry · NEP-171 (agents, seats)      │
  │  jobs/escrow/review · waterfall · budgets · reputation               │
  │  ledger: claimable, treasury, escrow  ·  events (NEP-297)            │
  └───▲───────────▲──────────────▲──────────────────────▲───────────────┘
@@ -101,12 +101,12 @@ Full steps: [docs/demo/TESTNET_RUNBOOK.md](docs/demo/TESTNET_RUNBOOK.md). Passin
 ```
 | Path | What |
 |---|---|
-| `contracts/charter/` | The contract: charter, agents (sub-account + scoped key + NFT), jobs, escrow, review, waterfall, budgets, spends, seats. `ABI.md` documents every method |
+| `contracts/bylaw/` | The contract: bylaw, agents (sub-account + scoped key + NFT), jobs, escrow, review, waterfall, budgets, spends, seats. `ABI.md` documents every method |
 | `contracts/mock-ft/` | Test token tUSD (6 decimals, open faucet) |
 | `packages/near-client/` | Typed contract client and `FakeContract` (in-memory implementation of the rules) |
 | `services/indexer/` | Poll-and-diff indexer, SQLite, REST + SSE (`openapi.yaml`) |
 | `services/agents/` | Sales, two Analysts, Reviewer, Treasurer; contract-health facts from NEAR RPC; attack script |
-| `apps/web/` | React + Vite UI: Charter, DAO, Agents, Jobs, Job detail, Treasury, Seats |
+| `apps/web/` | React + Vite UI: ByLaw, DAO, Agents, Jobs, Job detail, Treasury, Seats |
 | `scripts/` | DAO bootstrap, agent registration, seats, treasury funding, `e2e` |
 
 Design docs: [PRD](docs/PRD.md), [architecture](docs/ARCHITECTURE.md), [contract spec](docs/CONTRACT_SPEC.md), [interfaces](docs/INTERFACES.md).
@@ -139,11 +139,11 @@ Only tracks with proof in the repo are claimed; details and commands in [docs/TR
 
 | Track | Proof |
 |---|---|
-| Social Money (`social`) | `contracts/charter/src/lib.rs` (owner = DAO), `scripts/src/bootstrap-dao.ts`, `apps/web/src/pages/DaoPage.tsx`, `CharterPage.tsx` |
-| Autonomous Business (`business`) | `contracts/charter/src/lib.rs` (jobs, waterfall), `services/agents/src/roles/`, `npm run e2e:mock -w scripts` |
+| Social Money (`social`) | `contracts/bylaw/src/lib.rs` (owner = DAO), `scripts/src/bootstrap-dao.ts`, `apps/web/src/pages/DaoPage.tsx`, `ByLawPage.tsx` |
+| Autonomous Business (`business`) | `contracts/bylaw/src/lib.rs` (jobs, waterfall), `services/agents/src/roles/`, `npm run e2e:mock -w scripts` |
 | AI Security & Defense (`security`) | role keys in `register_agent`, budgets and `request_spend`, `freeze_agent`; `services/agents/src/roles/treasurer.ts` (`runTreasurerAttack`) |
 | Agent Economy (`agents`) | `services/agents/`, agent earnings in `GET /agents` |
-| NFTs That Do Something (`nfts`) | `contracts/charter/src/nft.rs`, seats and claims in `apps/web/src/pages/SeatsPage.tsx` |
+| NFTs That Do Something (`nfts`) | `contracts/bylaw/src/nft.rs`, seats and claims in `apps/web/src/pages/SeatsPage.tsx` |
 
 ## License
 MIT, see [LICENSE](LICENSE).

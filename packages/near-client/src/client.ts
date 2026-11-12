@@ -1,4 +1,4 @@
-import type { Agent, CharterParams, Job, JobListOpts, JobState, Seat, SpendRequest, Stats } from './types.ts';
+import type { Agent, ByLawParams, Job, JobListOpts, JobState, Seat, SpendRequest, Stats } from './types.ts';
 
 /**
  * Typed contract client. One instance == one signer (accountId), or null for read-only.
@@ -11,7 +11,7 @@ export interface ContractClient {
   nowNs(): Promise<bigint>;
   blockHeight(): Promise<number>;
   // views (CONTRACT_SPEC 4.12)
-  getCharter(): Promise<CharterParams>;
+  getByLaw(): Promise<ByLawParams>;
   getGuardians(): Promise<string[]>;
   getAgent(tokenId: string): Promise<Agent | null>;
   listAgents(): Promise<Agent[]>;

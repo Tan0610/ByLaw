@@ -43,7 +43,7 @@ export default function DaoPage() {
 
   return (
     <>
-      <PageHead title="DAO" lead="A Sputnik DAO owns the Charter contract. Every rule change, agent registration, vendor, seat and spend approval is a proposal that the council votes on." />
+      <PageHead title="DAO" lead="A Sputnik DAO owns the ByLaw contract. Every rule change, agent registration, vendor, seat and spend approval is a proposal that the council votes on." />
       <div className="card row spread">
         <div><div className="small muted">DAO account</div><Account id={ids.daoId} /></div>
         <div><div className="small muted">Owns contract</div><Account id={ids.contractId} /></div>
@@ -92,7 +92,7 @@ export default function DaoPage() {
 
       <section className="card" aria-labelledby="new">
         <h2 id="new">Create a proposal</h2>
-        <p className="small muted">Templates come from {source === "repo" ? <code>contracts/charter/dao-proposals/</code> : "a built-in fallback (the contract's dao-proposals folder was empty or unreadable)"}. It wraps the call in a Sputnik <code>FunctionCall</code> proposal to the Charter contract. A bond of 0.1 NEAR is attached.</p>
+        <p className="small muted">Templates come from {source === "repo" ? <code>contracts/bylaw/dao-proposals/</code> : "a built-in fallback (the contract's dao-proposals folder was empty or unreadable)"}. It wraps the call in a Sputnik <code>FunctionCall</code> proposal to the ByLaw contract. A bond of 0.1 NEAR is attached.</p>
         <form onSubmit={create} noValidate className="stack">
           <div>
             <label htmlFor="tpl">Template</label>

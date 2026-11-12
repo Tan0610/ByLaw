@@ -1,21 +1,21 @@
 //! Unit + property tests (near_sdk::test_utils + proptest) for invariants C1-C11.
-//! Name filters: `cargo test -p charter role_keys`, `cargo test -p charter seats`,
-//! `cargo test -p charter prop_`.
+//! Name filters: `cargo test -p bylaw role_keys`, `cargo test -p bylaw seats`,
+//! `cargo test -p bylaw prop_`.
 use super::*;
 use near_sdk::test_utils::{get_logs, VMContextBuilder};
 use near_sdk::{testing_env, PromiseResult};
 
-const CONTRACT: &str = "charter.testnet";
+const CONTRACT: &str = "bylaw.testnet";
 const DAO: &str = "dao.sputnikv2.testnet";
 const TOKEN: &str = "tusd.testnet";
 const CUST: &str = "cust.testnet";
 const VENDOR: &str = "vendor.testnet";
 const GUARD: &str = "guard.testnet";
 
-pub(crate) const TEXT1: &str = "Charter v1: agents run the business within these rules.";
-pub(crate) const HASH1: &str = "0x4491b3b77977cd3f31bc8993cee81df8ec25b9360bb998c7f8ff3a57af6c696f";
-const TEXT2: &str = "Charter v2: agents run the business within these rules. Budgets doubled.";
-const HASH2: &str = "0x59a8d149216467107a2637c93ff5516736bbe57a09b4826995efde124e77b4d8";
+pub(crate) const TEXT1: &str = "ByLaw v1: agents run the business within these rules.";
+pub(crate) const HASH1: &str = "0x38d07802abd15ce9007eaa1b702a0fbd58029e86d5591a10c102b84df06edb90";
+const TEXT2: &str = "ByLaw v2: agents run the business within these rules. Budgets doubled.";
+const HASH2: &str = "0x1bebb4ecfda49da723875dc8d988e51af7920923e5f96c2ffdc9a6be659f6327";
 
 const T: u64 = 1_000_000_000; // 1 s in ns
 const TUSD: u128 = 1_000_000;
@@ -54,8 +54,8 @@ fn ctx_cb(now: u64, ok: bool) {
     );
 }
 
-pub(crate) fn params_json(text: &str, hash: &str) -> CharterParamsJson {
-    CharterParamsJson {
+pub(crate) fn params_json(text: &str, hash: &str) -> ByLawParamsJson {
+    ByLawParamsJson {
         version: None,
         text: text.to_string(),
         text_hash: hash.to_string(),
@@ -128,28 +128,28 @@ impl H {
         // agents registered directly (the register_agent promise chain is tested separately)
         let sales = c.internal_add_agent(
             Kind::Sales,
-            acc("sales.charter.testnet"),
+            acc("sales.bylaw.testnet"),
             acc("alice.testnet"),
         );
-        let a1 = c.internal_add_agent(Kind::Analyst, acc("a1.charter.testnet"), acc("bob.testnet"));
+        let a1 = c.internal_add_agent(Kind::Analyst, acc("a1.bylaw.testnet"), acc("bob.testnet"));
         let a2 = c.internal_add_agent(
             Kind::Analyst,
-            acc("a2.charter.testnet"),
+            acc("a2.bylaw.testnet"),
             acc("carol.testnet"),
         );
         let rev = c.internal_add_agent(
             Kind::Reviewer,
-            acc("rev.charter.testnet"),
+            acc("rev.bylaw.testnet"),
             acc("dave.testnet"),
         );
         let rev2 = c.internal_add_agent(
             Kind::Reviewer,
-            acc("rev2.charter.testnet"),
+            acc("rev2.bylaw.testnet"),
             acc("bob.testnet"),
         );
         let treas = c.internal_add_agent(
             Kind::Treasurer,
-            acc("treas.charter.testnet"),
+            acc("treas.bylaw.testnet"),
             acc("erin.testnet"),
         );
         c.set_vendor(acc(VENDOR), true);
@@ -282,52 +282,52 @@ fn events(name: &str) -> Vec<near_sdk::serde_json::Value> {
         .collect()
 }
 
-// ============================================================ charter + auth (A1, C7)
+// ============================================================ bylaw + auth (A1, C7)
 
 #[test]
-fn init_and_get_charter() {
+fn init_and_get_bylaw() {
     let h = H::new();
-    let p = h.c.get_charter();
+    let p = h.c.get_bylaw();
     assert_eq!(p.version, Some(1));
     assert_eq!(p.text_hash, HASH1);
     assert_eq!(p.split.sum(), 10_000);
 }
 
 #[test]
-fn set_charter_bumps_version_and_emits_hashes() {
+fn set_bylaw_bumps_version_and_emits_hashes() {
     let mut h = H::new();
-    h.as_(DAO).set_charter(params_json(TEXT2, HASH2));
-    let ev = events("charter_updated");
+    h.as_(DAO).set_bylaw(params_json(TEXT2, HASH2));
+    let ev = events("bylaw_updated");
     assert_eq!(ev.len(), 1);
-    assert_eq!(ev[0]["standard"], "charter");
+    assert_eq!(ev[0]["standard"], "bylaw");
     assert_eq!(ev[0]["version"], "1.0.0");
     assert_eq!(ev[0]["data"][0]["version"], 2);
     assert_eq!(ev[0]["data"][0]["old_hash"], HASH1);
     assert_eq!(ev[0]["data"][0]["new_hash"], HASH2);
-    assert_eq!(h.c.get_charter().version, Some(2));
+    assert_eq!(h.c.get_bylaw().version, Some(2));
 }
 
 #[test]
 #[should_panic(expected = "text_hash must equal sha256(text)")]
-fn set_charter_rejects_wrong_hash() {
+fn set_bylaw_rejects_wrong_hash() {
     let mut h = H::new();
-    h.as_(DAO).set_charter(params_json(TEXT2, HASH1));
+    h.as_(DAO).set_bylaw(params_json(TEXT2, HASH1));
 }
 
 #[test]
 #[should_panic(expected = "split must sum to 10000 bps")]
-fn set_charter_rejects_bad_split() {
+fn set_bylaw_rejects_bad_split() {
     let mut h = H::new();
     let mut p = params_json(TEXT2, HASH2);
     p.split.seats = 1;
-    h.as_(DAO).set_charter(p);
+    h.as_(DAO).set_bylaw(p);
 }
 
 #[test]
 #[should_panic(expected = "only the owner (DAO) can call this")]
-fn c7_non_owner_cannot_set_charter() {
+fn c7_non_owner_cannot_set_bylaw() {
     let mut h = H::new();
-    h.as_(GUARD).set_charter(params_json(TEXT2, HASH2));
+    h.as_(GUARD).set_bylaw(params_json(TEXT2, HASH2));
 }
 
 #[test]
@@ -400,7 +400,7 @@ fn role_keys_register_agent_creates_restricted_key_and_mints_on_callback() {
     let receipts = near_sdk::test_utils::get_created_receipts();
     let r = receipts
         .iter()
-        .find(|r| r.receiver_id.as_str() == "analyst-9.charter.testnet")
+        .find(|r| r.receiver_id.as_str() == "analyst-9.bylaw.testnet")
         .expect("create-account receipt");
     use near_sdk::mock::MockAction;
     let mut created = false;
@@ -432,7 +432,7 @@ fn role_keys_register_agent_creates_restricted_key_and_mints_on_callback() {
         .cb(true)
         .on_agent_created(
             Kind::Analyst,
-            acc("analyst-9.charter.testnet"),
+            acc("analyst-9.bylaw.testnet"),
             acc("bob.testnet"),
             U128(MIN_AGENT_DEPOSIT),
             acc(DAO),
@@ -461,7 +461,7 @@ fn role_keys_register_agent_failure_refunds_and_registers_nothing() {
     );
     let r = h.cb(false).on_agent_created(
         Kind::Sales,
-        acc("s2.charter.testnet"),
+        acc("s2.bylaw.testnet"),
         acc("bob.testnet"),
         U128(MIN_AGENT_DEPOSIT),
         acc(DAO),
@@ -495,17 +495,17 @@ fn rotate_agent_rebinds_account_and_keeps_rep() {
         .rotate_agent(U64(a1), "a1b".into(), pk);
     assert!(h.cb(true).on_agent_rotated(
         U64(a1),
-        acc("a1b.charter.testnet"),
+        acc("a1b.bylaw.testnet"),
         U128(MIN_AGENT_DEPOSIT),
         acc(DAO)
     ));
     let a = h.c.agent(a1);
-    assert_eq!(a.account, acc("a1b.charter.testnet"));
+    assert_eq!(a.account, acc("a1b.bylaw.testnet"));
     assert_eq!(a.rep, 100);
     assert!(h
         .c
         .agent_by_account
-        .get(&acc("a1.charter.testnet"))
+        .get(&acc("a1.bylaw.testnet"))
         .is_none());
     assert_eq!(h.c.owner_of(a1), acc("bob.testnet"));
 }
@@ -523,14 +523,14 @@ fn rotate_old_identity_cannot_act() {
         .rotate_agent(U64(a1), "a1b".into(), pk);
     h.cb(true).on_agent_rotated(
         U64(a1),
-        acc("a1b.charter.testnet"),
+        acc("a1b.bylaw.testnet"),
         U128(MIN_AGENT_DEPOSIT),
         acc(DAO),
     );
     let (_, id) = h.post(10 * TUSD);
     let s = h.sales;
     h.call_agent(s, |c| c.accept_job(U64(id.unwrap())));
-    h.as_("a1.charter.testnet")
+    h.as_("a1.bylaw.testnet")
         .place_bid(U64(id.unwrap()), U128(TUSD));
 }
 
@@ -1222,12 +1222,12 @@ fn views_list_and_stats() {
 }
 
 #[test]
-fn charter_history_view() {
+fn bylaw_history_view() {
     let mut h = H::new();
-    h.as_(DAO).set_charter(params_json(TEXT2, HASH2));
-    assert_eq!(h.c.get_charter_version(1).unwrap().text, TEXT1);
-    assert_eq!(h.c.get_charter_version(2).unwrap().text_hash, HASH2);
-    assert!(h.c.get_charter_version(3).is_none());
+    h.as_(DAO).set_bylaw(params_json(TEXT2, HASH2));
+    assert_eq!(h.c.get_bylaw_version(1).unwrap().text, TEXT1);
+    assert_eq!(h.c.get_bylaw_version(2).unwrap().text_hash, HASH2);
+    assert!(h.c.get_bylaw_version(3).is_none());
 }
 
 #[test]
@@ -1481,7 +1481,7 @@ mod prop {
             let tr = 10_000 - r - p - s - se;
             let mut pj = params_json(TEXT1, HASH1);
             pj.split = Split { reviewer: r, producer: p, sales: s, treasury: tr, seats: se };
-            h.as_(DAO).set_charter(pj);
+            h.as_(DAO).set_bylaw(pj);
             for (i, w) in weights.iter().enumerate() { h.as_(DAO).mint_seat(acc(OWNERS[i % 5]), *w); }
             let a1 = h.a1;
             let id = h.to_awarded(price, &[(a1, 1)]);

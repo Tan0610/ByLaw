@@ -1,8 +1,8 @@
 // @vitest-environment node
 // Contract test: the web normalizers accept the REAL indexer responses (services/indexer over the
-// @charter/near-client FakeContract), not just our MSW fixtures.
-import { DEMO_ACCOUNTS, FakeContract, ManualClock, seedDemoWorld } from "@charter/near-client";
-import { createIndexerApp } from "@charter/indexer";
+// @bylaw/near-client FakeContract), not just our MSW fixtures.
+import { DEMO_ACCOUNTS, FakeContract, ManualClock, seedDemoWorld } from "@bylaw/near-client";
+import { createIndexerApp } from "@bylaw/indexer";
 import { normAgent, normHistory, normJob, normSeat, normSpend, normStats, normTimeline, reviewFromTimeline } from "../lib/normalize";
 
 describe("real indexer shapes", () => {
@@ -27,8 +27,8 @@ describe("real indexer shapes", () => {
     await fake.as(winnerAcct).submitWork(id, "0x" + "ab".repeat(32), "uri", null);
     await fake.as(A.reviewer).reviewWork(id, true, "0x" + "00".repeat(32));
     await fake.as(A.treasurer).requestSpend("attacker-wallet.testnet", "1000000", null, "attack");
-    await indexer.poll(); // the indexer records charter versions it observes
-    fake.setCharter({ text: "v2 text" });
+    await indexer.poll(); // the indexer records bylaw versions it observes
+    fake.setByLaw({ text: "v2 text" });
     await indexer.poll();
 
     const agents = (await get("/agents")).map(normAgent);
@@ -57,7 +57,7 @@ describe("real indexer shapes", () => {
     const stats = normStats(await get("/stats"));
     expect(stats.solvency_ok).toBe(true);
 
-    const hist = normHistory(await get("/charter/history"));
+    const hist = normHistory(await get("/bylaw/history"));
     expect(hist.map((h) => h.version)).toEqual([1, 2]);
     expect(hist[1].text).toBe("v2 text");
 

@@ -13,7 +13,7 @@ pub const MAX_AGENTS: u32 = 32;
 pub const MAX_SEATS: u32 = 64;
 pub const MAX_GUARDIANS: usize = 16;
 pub const MAX_SEAT_WEIGHT: u32 = 1_000_000;
-/// Max price accepted by charter validation: 1e9 tUSD (6 decimals). Keeps the
+/// Max price accepted by bylaw validation: 1e9 tUSD (6 decimals). Keeps the
 /// seat_accumulator math (`seats * 1e18`) far below u128::MAX.
 pub const MAX_PRICE_CAP: u128 = 1_000_000_000_000_000;
 /// Sliding-window spend log capacity per agent.
@@ -101,7 +101,7 @@ impl Split {
 
 #[near(serializers = [borsh])]
 #[derive(Clone, Debug, PartialEq)]
-pub struct CharterParams {
+pub struct ByLawParams {
     pub version: u32,
     pub text: String,
     pub text_hash: Hash,
@@ -125,11 +125,11 @@ pub struct CharterParams {
     pub approval_threshold: u128,
 }
 
-/// JSON form of CharterParams (input to `new`/`set_charter`, output of `get_charter`).
+/// JSON form of ByLawParams (input to `new`/`set_bylaw`, output of `get_bylaw`).
 /// `version` is ignored on input (the contract sets old+1).
 #[near(serializers = [json])]
 #[derive(Clone, Debug)]
-pub struct CharterParamsJson {
+pub struct ByLawParamsJson {
     pub version: Option<u32>,
     pub text: String,
     /// "0x" + 64 hex, must equal sha256(text)
@@ -154,9 +154,9 @@ pub struct CharterParamsJson {
     pub approval_threshold: U128,
 }
 
-impl CharterParamsJson {
-    pub fn into_params(self, version: u32) -> CharterParams {
-        CharterParams {
+impl ByLawParamsJson {
+    pub fn into_params(self, version: u32) -> ByLawParams {
+        ByLawParams {
             version,
             text_hash: parse_hash(&self.text_hash),
             text: self.text,
@@ -181,8 +181,8 @@ impl CharterParamsJson {
         }
     }
 
-    pub fn from_params(p: &CharterParams) -> Self {
-        CharterParamsJson {
+    pub fn from_params(p: &ByLawParams) -> Self {
+        ByLawParamsJson {
             version: Some(p.version),
             text: p.text.clone(),
             text_hash: hex32(&p.text_hash),
@@ -433,7 +433,7 @@ pub struct StatsView {
     pub agents_total: u32,
     pub seats_total: u32,
     pub paused: bool,
-    pub charter_version: u32,
+    pub bylaw_version: u32,
 }
 
 #[near(serializers = [json])]
@@ -443,7 +443,7 @@ pub struct ConfigView {
     pub token: AccountId,
     pub guardians: Vec<AccountId>,
     pub paused: bool,
-    pub charter_version: u32,
+    pub bylaw_version: u32,
     pub text_hash: String,
 }
 

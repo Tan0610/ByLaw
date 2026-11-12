@@ -1,7 +1,7 @@
 // Treasurer "attack" scene: overspend + non-allowlisted vendor; every attempt must be a RECORDED denial.
 // Fake mode (default): no network. Near mode sends real transactions, so it requires ATTACK_CONFIRM=yes.
-import { DEMO_ACCOUNTS, FakeContract, NearContractClient, seedDemoWorld } from '@charter/near-client';
-import type { ContractClient } from '@charter/near-client';
+import { DEMO_ACCOUNTS, FakeContract, NearContractClient, seedDemoWorld } from '@bylaw/near-client';
+import type { ContractClient } from '@bylaw/near-client';
 import { createLogger } from './log.ts';
 import { runTreasurerAttack } from './roles/treasurer.ts';
 import { loadAgentKeys } from './stack.ts';
@@ -15,7 +15,7 @@ if ((env.AGENTS_MODE ?? 'fake') === 'near') {
   const { keys, missing } = loadAgentKeys(env, ['treasurer']);
   if (missing.length) { log.error('missing env', { missing }); process.exit(2); }
   client = new NearContractClient({
-    rpcUrl: env.NEAR_RPC_URL || 'https://rpc.testnet.near.org', contractId: env.CHARTER_CONTRACT_ID ?? '', tokenId: env.TOKEN_ID ?? '',
+    rpcUrl: env.NEAR_RPC_URL || 'https://rpc.testnet.near.org', contractId: env.BYLAW_CONTRACT_ID ?? '', tokenId: env.TOKEN_ID ?? '',
     accountId: keys.treasurer!.account, privateKey: keys.treasurer!.privateKey,
   });
   vendor = env.TREASURER_VENDOR ?? '';

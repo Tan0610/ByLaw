@@ -28,11 +28,11 @@ UTC dates. Today is Nov 9. Submission deadline Nov 14 23:59. Target: submit by N
 | S6 | NEAR RPC `view_access_key_list`, `view_code`, `view_account` on a known testnet contract; free RPC rate limits | B |
 
 ## 3. Lane A: Contract (Rust)
-**Owns:** `contracts/**` (including `contracts/charter/dao-proposals/`)
+**Owns:** `contracts/**` (including `contracts/bylaw/dao-proposals/`)
 
 | # | Task | Tier | Done when |
 |---|---|---|---|
-| A1 | Skeleton, types, storage, owner/guardian auth, pause, charter set/validate | T1 | Unit tests for charter and auth |
+| A1 | Skeleton, types, storage, owner/guardian auth, pause, bylaw set/validate | T1 | Unit tests for bylaw and auth |
 | A2 | `contracts/mock-ft` NEP-141 with open mint and `storage_deposit` | T1 | Used by tests, deployed |
 | A3 | Agent registry + `register_agent` promise chain (sub-account, function-call key, NFT), `rotate_agent`, freeze/unfreeze/retire | T1 | S3 result implemented, role-key test passes |
 | A4 | `ft_on_transfer`, job posting, `accept_job`, bids, `award_job`, `submit_work`, `review_work`, `expire_job`, override | T1 | State-machine tests |
@@ -42,7 +42,7 @@ UTC dates. Today is Nov 9. Submission deadline Nov 14 23:59. Target: submit by N
 | A8 | Pools (`open_pool`, `contribute_pool`, `refund_pool`) | T3 | Tests |
 | A9 | Views, events exactly per `INTERFACES.md`, `ABI.md`, DAO proposal templates | T1 | Matches interfaces |
 | A10 | `near-workspaces` integration suite with a mock DAO owner; all invariants C1-C11 | T1+ | Green |
-| A11 | Deploy guide and script (human signs) | T1 | Deployed, `get_charter` works |
+| A11 | Deploy guide and script (human signs) | T1 | Deployed, `get_bylaw` works |
 
 **Milestones:** M1 (Nov 10 EOD): A1-A5 green, `ABI.md` + proposal templates published. M2 (Nov 11 EOD): A6, A9-A11, deployed. M2.5 (Nov 12 noon): A7. M3 (Nov 12 EOD): A8, security pass, support e2e.
 
@@ -70,7 +70,7 @@ UTC dates. Today is Nov 9. Submission deadline Nov 14 23:59. Target: submit by N
 | # | Task | Tier | Done when |
 |---|---|---|---|
 | C1 | App shell, design system, wallet selector, MSW mock of `INTERFACES.md` REST | T1 | Runs on mocks |
-| C2 | **Charter page:** text, parameters, version history, diff | T1 | Live |
+| C2 | **ByLaw page:** text, parameters, version history, diff | T1 | Live |
 | C3 | **DAO page:** proposals list, create from `dao-proposals/` templates, vote | T1 | Works on testnet |
 | C4 | **Agents page:** role, owner, rep, budget bar, state, freeze button (guardian) | T1 | Works |
 | C5 | **Customer flow:** post a job via `ft_transfer_call`, watch timeline, read report | T1 | Works |
@@ -111,7 +111,7 @@ S5 result                 ──► B9, C9              (M3)   fallback: skip T4
 6. Make the repo public; publish the X post; submit.
 
 ## 9. Definition of done
-- `scripts/e2e` completes on testnet and prints verifiable links for every step, including the blocked overspend, a freeze, and a charter amendment through the DAO.
+- `scripts/e2e` completes on testnet and prints verifiable links for every step, including the blocked overspend, a freeze, and a bylaw amendment through the DAO.
 - Invariants C1-C11 have passing tests.
 - README lets a stranger reproduce; limits and trust model honest, in a "What is real, what is not" block; AI use disclosed.
 - `docs/TRACKS.md` lists only tracks we can prove, each with real paths and a working command.

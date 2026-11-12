@@ -1,11 +1,11 @@
 import { FakeContract } from './fake.ts';
 
 export const DEMO_ACCOUNTS = {
-  sales: 'sales.charter.fake.testnet',
-  analyst1: 'analyst1.charter.fake.testnet',
-  analyst2: 'analyst2.charter.fake.testnet',
-  reviewer: 'reviewer.charter.fake.testnet',
-  treasurer: 'treasurer.charter.fake.testnet',
+  sales: 'sales.bylaw.fake.testnet',
+  analyst1: 'analyst1.bylaw.fake.testnet',
+  analyst2: 'analyst2.bylaw.fake.testnet',
+  reviewer: 'reviewer.bylaw.fake.testnet',
+  treasurer: 'treasurer.bylaw.fake.testnet',
   customer: 'customer.fake.testnet',
   vendor: 'rpc-vendor.fake.testnet',
   owners: { sales: 'alice.fake.testnet', analyst1: 'bob.fake.testnet', analyst2: 'carol.fake.testnet', reviewer: 'dave.fake.testnet', treasurer: 'alice.fake.testnet' },

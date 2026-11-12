@@ -20,7 +20,7 @@ export interface Agent {
 
 export interface Split { reviewer: number; producer: number; sales: number; treasury: number; seats: number }
 
-export interface CharterParams {
+export interface ByLawParams {
   version: number;
   text: string;
   text_hash: string; // 0x sha256(text)
@@ -77,4 +77,4 @@ export interface Stats {
 
 export interface JobListOpts { from?: number; limit?: number; state?: JobState }
 
-export interface ContractEvent { standard: 'charter'; version: '1.0.0'; event: string; data: Record<string, unknown>[] }
+export interface ContractEvent { standard: 'bylaw'; version: '1.0.0'; event: string; data: Record<string, unknown>[] }

@@ -1,6 +1,6 @@
 export type DiffLine = { kind: "same" | "add" | "del"; text: string };
 
-/** Line-based diff (longest common subsequence). Charter text is <= 8 KB, so O(n*m) is fine. */
+/** Line-based diff (longest common subsequence). ByLaw text is <= 8 KB, so O(n*m) is fine. */
 export function diffLines(a: string, b: string): DiffLine[] {
   const x = a.split("\n"), y = b.split("\n");
   const n = x.length, m = y.length;

@@ -39,7 +39,7 @@ describe("customer flow", () => {
     expect(screen.getByRole("list", { name: /job timeline/i })).toBeInTheDocument();
   });
 
-  it("rejects a price outside the charter band before sending anything", async () => {
+  it("rejects a price outside the bylaw band before sending anything", async () => {
     const user = userEvent.setup();
     renderApp("/jobs", CUSTOMER);
     await screen.findByText("All jobs");
@@ -68,11 +68,11 @@ describe("DAO flow", () => {
     expect(mockStore.spends.find((s) => s.id === "3")?.state).toBe("Paid");
   });
 
-  it("creates a charter amendment proposal from a template", async () => {
+  it("creates a bylaw amendment proposal from a template", async () => {
     const user = userEvent.setup();
     renderApp("/dao", COUNCIL_A);
     await screen.findByText("Create a proposal");
-    await user.selectOptions(screen.getByLabelText("Template"), screen.getByRole("option", { name: /amend the charter/i }));
+    await user.selectOptions(screen.getByLabelText("Template"), screen.getByRole("option", { name: /amend the bylaw/i }));
     await user.type(screen.getByLabelText(/description/i), "Add reputation rule");
     await waitFor(() => expect(screen.getByRole("button", { name: /create proposal/i })).toBeEnabled());
     await user.click(screen.getByRole("button", { name: /create proposal/i }));
@@ -89,7 +89,7 @@ describe("DAO flow", () => {
   });
 });
 
-describe("charter page", () => {
+describe("bylaw page", () => {
   it("shows version history with a diff between versions", async () => {
     renderApp("/", null);
     await screen.findByText(/Text, version 2/);
@@ -114,7 +114,7 @@ describe("guardian flow", () => {
   it("a guardian freezes an agent", async () => {
     const user = userEvent.setup();
     renderApp("/agents", GUARDIAN);
-    const name = "Freeze analyst-1.charter.demo.testnet";
+    const name = "Freeze analyst-1.bylaw.demo.testnet";
     await waitFor(async () => expect(await screen.findByRole("button", { name })).toBeEnabled());
     await user.click(screen.getByRole("button", { name }));
     await screen.findByText(/Froze analyst-1/);
@@ -124,7 +124,7 @@ describe("guardian flow", () => {
 
   it("a non-guardian cannot freeze", async () => {
     renderApp("/agents", CUSTOMER);
-    const btn = await screen.findByRole("button", { name: "Freeze analyst-1.charter.demo.testnet" });
+    const btn = await screen.findByRole("button", { name: "Freeze analyst-1.bylaw.demo.testnet" });
     expect(btn).toBeDisabled();
   });
 });

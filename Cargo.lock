@@ -214,6 +214,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72f5acc6cb2ba439de613abc23857ec3d78374d8ed5ac84e9d11336e87da8649"
 
 [[package]]
+name = "bylaw"
+version = "0.1.0"
+dependencies = [
+ "near-sdk",
+ "proptest",
+]
+
+[[package]]
 name = "byteorder"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -284,14 +292,6 @@ dependencies = [
  "cfg-if 1.0.5",
  "cpufeatures 0.3.1",
  "rand_core 0.10.1",
-]
-
-[[package]]
-name = "charter"
-version = "0.1.0"
-dependencies = [
- "near-sdk",
- "proptest",
 ]
 
 [[package]]

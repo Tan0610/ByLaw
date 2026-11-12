@@ -1,7 +1,7 @@
 //! mock-ft: minimal NEP-141 "tUSD" (6 decimals) with an open, capped `mint` faucet.
 //! NEP-145 style registration: `storage_deposit` registers an account; `mint` auto-registers
 //! the receiver (open faucet). `ft_transfer` to an unregistered account panics, which lets
-//! tests exercise the Charter `claim` rollback path (invariant C11).
+//! tests exercise the ByLaw `claim` rollback path (invariant C11).
 use near_sdk::borsh::BorshSerialize;
 use near_sdk::json_types::U128;
 use near_sdk::serde::Serialize;
@@ -207,7 +207,7 @@ impl MockFt {
     pub fn ft_metadata(&self) -> FungibleTokenMetadata {
         FungibleTokenMetadata {
             spec: "ft-1.0.0".into(),
-            name: "Charter test USD".into(),
+            name: "ByLaw test USD".into(),
             symbol: "tUSD".into(),
             icon: None,
             reference: None,

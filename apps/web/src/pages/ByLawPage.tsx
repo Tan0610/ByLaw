@@ -2,10 +2,10 @@ import { useState } from "react";
 import { DiffView } from "../components/viz";
 import { Empty, ErrorBox, Loading, PageHead, Table } from "../components/ui";
 import { bpsPct, fmtNs, fmtTime, fmtToken, shortHash } from "../lib/format";
-import { useCharter, useCharterHistory } from "../lib/hooks";
-import type { CharterParams } from "../lib/types";
+import { useByLaw, useByLawHistory } from "../lib/hooks";
+import type { ByLawParams } from "../lib/types";
 
-function paramRows(c: CharterParams): [string, string, string][] {
+function paramRows(c: ByLawParams): [string, string, string][] {
   return [
     ["Price band", `${fmtToken(c.min_price)} to ${fmtToken(c.max_price)} tUSD`, "Jobs outside the band are refunded in full."],
     ["Bid window", fmtNs(c.bid_window_ns), "Analysts bid during this time."],
@@ -24,21 +24,21 @@ function paramRows(c: CharterParams): [string, string, string][] {
   ];
 }
 
-export default function CharterPage() {
-  const charter = useCharter();
-  const history = useCharterHistory();
+export default function ByLawPage() {
+  const bylaw = useByLaw();
+  const history = useByLawHistory();
   const [pick, setPick] = useState<number | null>(null);
 
-  if (charter.isLoading || history.isLoading) return <Loading what="charter" />;
-  if (charter.error) return <ErrorBox error={charter.error} retry={() => charter.refetch()} />;
-  const c = charter.data!;
+  if (bylaw.isLoading || history.isLoading) return <Loading what="bylaw" />;
+  if (bylaw.error) return <ErrorBox error={bylaw.error} retry={() => bylaw.refetch()} />;
+  const c = bylaw.data!;
   const versions = [...(history.data ?? [])].sort((a, b) => b.version - a.version);
   const selected = versions.find((v) => v.version === pick) ?? versions[0];
   const prev = selected ? versions.find((v) => v.version === selected.version - 1) : undefined;
 
   return (
     <>
-      <PageHead title="Charter" lead="The company constitution. It lives on-chain, only the DAO can change it, and the contract enforces the parameters below." />
+      <PageHead title="ByLaw" lead="The company constitution. It lives on-chain, only the DAO can change it, and the contract enforces the parameters below." />
       <div className="grid cols-2">
         <section className="card" aria-labelledby="ct">
           <div className="row spread">
@@ -49,7 +49,7 @@ export default function CharterPage() {
         </section>
         <section className="card" aria-labelledby="cp">
           <h2 id="cp">Parameters</h2>
-          <Table label="Charter parameters">
+          <Table label="ByLaw parameters">
             <tbody>
               {paramRows(c).map(([k, v, note]) => (
                 <tr key={k}><th scope="row" style={{ textTransform: "none", fontSize: ".9rem" }}>{k}</th><td>{v}<div className="small muted">{note}</div></td></tr>
@@ -63,7 +63,7 @@ export default function CharterPage() {
         <h2 id="hist">Version history</h2>
         {history.error ? <ErrorBox error={history.error} /> : !versions.length ? <Empty>No history yet.</Empty> : (
           <div className="grid cols-2">
-            <ul style={{ listStyle: "none", padding: 0, margin: 0 }} aria-label="Charter versions">
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }} aria-label="ByLaw versions">
               {versions.map((v) => (
                 <li key={v.version} style={{ marginBottom: ".5rem" }}>
                   <button

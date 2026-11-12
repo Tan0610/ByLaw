@@ -1,6 +1,6 @@
-# Charter contract ABI (Lane A → Lane B, C)
+# ByLaw contract ABI (Lane A → Lane B, C)
 
-Source of truth: `contracts/charter/src/lib.rs`, `src/nft.rs`, `src/types.rs`.
+Source of truth: `contracts/bylaw/src/lib.rs`, `src/nft.rs`, `src/types.rs`.
 Conventions: JSON args, `snake_case`; **all u64/u128 amounts, ids and timestamps are decimal strings** (`U64`/`U128`); small ints (`u8/u16/u32`) are JSON numbers. Hashes are `"0x" + 64 hex` (sha256; the `0x` prefix is optional on input). tUSD has 6 decimals (`"1000000"` = 1 tUSD). Times are nanoseconds.
 
 Token ids: agents and seats share one NFT id space starting at `"1"`. Job ids and spend ids start at `"1"`.
@@ -14,11 +14,11 @@ Token ids: agents and seats share one NFT id space starting at `"1"`. Job ids an
 //              terminal: Settled, Refunded (no bid / no award), Rejected (refunded after final rejection), Expired (refunded after timeout)
 // SpendState:  "Pending" | "Approved" (transfer in flight) | "Rejected" | "Paid"
 
-// CharterParams (input of new/set_charter, output of get_charter). `version` is ignored on input.
+// ByLawParams (input of new/set_bylaw, output of get_bylaw). `version` is ignored on input.
 {
   "version": 1,
-  "text": "Charter v1: agents run the business within these rules.",
-  "text_hash": "0x4491b3b77977cd3f31bc8993cee81df8ec25b9360bb998c7f8ff3a57af6c696f",
+  "text": "ByLaw v1: agents run the business within these rules.",
+  "text_hash": "0x38d07802abd15ce9007eaa1b702a0fbd58029e86d5591a10c102b84df06edb90",
   "min_price": "1000000", "max_price": "1000000000",
   "bid_window_ns": "600000000000", "submit_window_ns": "3600000000000", "review_window_ns": "3600000000000",
   "max_bid_bps": 10000,
@@ -31,7 +31,7 @@ Token ids: agents and seats share one NFT id space starting at `"1"`. Job ids an
 ```
 Validation: `text` ≤ 8192 bytes; `text_hash == sha256(text)`; split sums to 10000; `0 < min_price ≤ max_price ≤ 1e15`; `1 ≤ max_bid_bps ≤ 10000`; all windows > 0; `base_budget ≤ max_budget`; `per_tx_cap > 0`.
 
-Role → `method_names` of the agent function-call key (`receiver_id` = charter contract):
+Role → `method_names` of the agent function-call key (`receiver_id` = bylaw contract):
 
 | Kind | method_names |
 |---|---|
@@ -44,8 +44,8 @@ Role → `method_names` of the agent function-call key (`receiver_id` = charter 
 
 | Method | Args example | Result | Deposit |
 |---|---|---|---|
-| `new` (#init) | `{"owner":"charter-dao.sputnikv2.testnet","token":"tusd.alice.testnet","params":{...CharterParams}}` | – | 0 |
-| `set_charter` | `{"params":{...CharterParams with v2 text and its hash}}` | `null`; emits `charter_updated` | 0 |
+| `new` (#init) | `{"owner":"bylaw-dao.sputnikv2.testnet","token":"tusd.alice.testnet","params":{...ByLawParams}}` | – | 0 |
+| `set_bylaw` | `{"params":{...ByLawParams with v2 text and its hash}}` | `null`; emits `bylaw_updated` | 0 |
 | `set_guardians` | `{"guardians":["g1.testnet","g2.testnet"]}` (≤16) | `null` | 0 |
 | `set_paused` | `{"paused":true}` | `null` (stops new jobs and spends; claims still work) | 0 |
 | `set_vendor` | `{"vendor":"data-vendor.testnet","allowed":true}` | `null` | 0 |
@@ -72,7 +72,7 @@ Role → `method_names` of the agent function-call key (`receiver_id` = charter 
 
 Post a job: on the **token** contract call `ft_transfer_call` (1 yoctoNEAR):
 ```json
-{"receiver_id":"charter.alice.testnet","amount":"100000000","msg":"{\"action\":\"post_job\",\"target\":\"example.testnet\"}"}
+{"receiver_id":"bylaw.alice.testnet","amount":"100000000","msg":"{\"action\":\"post_job\",\"target\":\"example.testnet\"}"}
 ```
 Fund treasury: `msg = "{\"action\":\"fund_treasury\"}"`.
 `ft_on_transfer` returns `"0"` when accepted; returns the full amount (refund) if paused, price outside `[min_price, max_price]`, invalid target, or unknown action. The job id is in the `job_posted` event.
@@ -106,11 +106,11 @@ Budget (`sliding_window`): `budget = min(max_budget, base_budget + per_rep_budge
 
 | Method | Args | Result example |
 |---|---|---|
-| `get_charter` | `{}` | CharterParams (above) |
-| `get_config` | `{}` | `{"owner":"...","token":"...","guardians":[],"paused":false,"charter_version":1,"text_hash":"0x..."}` |
+| `get_bylaw` | `{}` | ByLawParams (above) |
+| `get_config` | `{}` | `{"owner":"...","token":"...","guardians":[],"paused":false,"bylaw_version":1,"text_hash":"0x..."}` |
 | `get_guardians` | `{}` | `["g1.testnet"]` |
-| `get_agent` | `{"token_id":"7"}` | `{"token_id":"7","account":"analyst-1.charter.alice.testnet","kind":"Analyst","state":"Active","owner":"bob.testnet","rep":110,"delivered":1,"rejected":0,"win_start_ns":"0","win_spent":"0","budget":"31000000","method_names":"place_bid,submit_work"}` or `null` |
-| `get_agent_by_account` | `{"account":"analyst-1.charter.alice.testnet"}` | AgentView or `null` |
+| `get_agent` | `{"token_id":"7"}` | `{"token_id":"7","account":"analyst-1.bylaw.alice.testnet","kind":"Analyst","state":"Active","owner":"bob.testnet","rep":110,"delivered":1,"rejected":0,"win_start_ns":"0","win_spent":"0","budget":"31000000","method_names":"place_bid,submit_work"}` or `null` |
+| `get_agent_by_account` | `{"account":"analyst-1.bylaw.alice.testnet"}` | AgentView or `null` |
 | `list_agents` | `{}` | `[AgentView]` sorted by token id |
 | `get_job` | `{"id":"1"}` | `{"id":"1","customer":"cust.testnet","target":"example.testnet","price":"100000000","state":"Settled","created_ns":"...","sales":"1","bids":[{"agent":"2","price":"80000000","ts_ns":"...","score":"72727272"}],"winner":"2","reviewer":"4","deliverable_hash":"0x...","uri":"...","attestation":null,"attempts":0,"deadline_ns":"...","escalated":false,"escrow":"0"}` |
 | `list_jobs` | `{"from":"1","limit":50,"state":"Open"}` (all optional; limit ≤100) | `[JobView]` |
@@ -122,22 +122,22 @@ Budget (`sliding_window`): `budget = min(max_budget, base_budget + per_rep_budge
 | `budget_of` | `{"token_id":"5"}` | `{"token_id":"5","budget":"30000000","win_spent":"10000000","remaining":"20000000","window_ns":"3600000000000","log_len":1}` |
 | `seat_pending` | `{"token_id":"12"}` | `"1500000"` |
 | `get_seat` / `list_seats` | `{"token_id":"12"}` / `{}` | `{"token_id":"12","owner":"carol.testnet","weight":100,"last_acc":"0","pending":"1500000"}` |
-| `get_stats` | `{}` | `{"treasury":"...","escrow_total":"...","claimable_total":"...","pools_total":"0","seat_pool":"...","seat_accumulator":"...","total_seat_weight":"100","total_in":"...","total_out":"...","solvent":true,"jobs_total":"3","jobs_settled":"1","spends_total":"2","agents_total":5,"seats_total":1,"paused":false,"charter_version":1}` |
-| `get_charter_version` | `{"version":1}` | CharterParams of that version (current or historical) or `null` |
-| `nft_token` | `{"token_id":"7"}` | `{"token_id":"7","owner_id":"bob.testnet","metadata":{"title":"Charter agent #7 (Analyst)","extra":"{\"kind\":\"agent\",\"role\":\"Analyst\",...}",...}}` |
+| `get_stats` | `{}` | `{"treasury":"...","escrow_total":"...","claimable_total":"...","pools_total":"0","seat_pool":"...","seat_accumulator":"...","total_seat_weight":"100","total_in":"...","total_out":"...","solvent":true,"jobs_total":"3","jobs_settled":"1","spends_total":"2","agents_total":5,"seats_total":1,"paused":false,"bylaw_version":1}` |
+| `get_bylaw_version` | `{"version":1}` | ByLawParams of that version (current or historical) or `null` |
+| `nft_token` | `{"token_id":"7"}` | `{"token_id":"7","owner_id":"bob.testnet","metadata":{"title":"ByLaw agent #7 (Analyst)","extra":"{\"kind\":\"agent\",\"role\":\"Analyst\",...}",...}}` |
 | `nft_metadata`, `nft_total_supply`, `nft_tokens{from_index?,limit?}`, `nft_supply_for_owner{account_id}`, `nft_tokens_for_owner{account_id,from_index?,limit?}` | | NEP-177 / NEP-181 |
 
 Solvency (`get_stats.solvent`): `claimable_total + escrow_total + treasury + seat_pool == total_in - total_out` (pools_total is always 0 in this build).
 
 Hash encoding: all hash args/fields are strings, `"0x" + 64 lowercase hex`; on input the `0x` prefix is optional and upper-case hex is accepted. Byte arrays are NOT accepted.
 
-## 7. Events (NEP-297, `EVENT_JSON:` logs, standard `charter`, version `1.0.0`)
+## 7. Events (NEP-297, `EVENT_JSON:` logs, standard `bylaw`, version `1.0.0`)
 
 Exactly the fields of `docs/INTERFACES.md` 2.1; ids and amounts are strings, `old/new` rep and seat `weight` are numbers, `approve` is a bool.
 ```json
-{"standard":"charter","version":"1.0.0","event":"job_settled","data":[{"job_id":"3","price":"100000000","credits":{"reviewer":"8000000","producer":"55000000","sales":"7000000","seats":"15000000","treasury":"15000000"}}]}
-{"standard":"charter","version":"1.0.0","event":"spend_recorded","data":[{"request_id":"4","agent":"5","vendor":"evil.testnet","amount":"10000000","outcome":"Rejected:vendor_not_allowlisted"}]}
+{"standard":"bylaw","version":"1.0.0","event":"job_settled","data":[{"job_id":"3","price":"100000000","credits":{"reviewer":"8000000","producer":"55000000","sales":"7000000","seats":"15000000","treasury":"15000000"}}]}
+{"standard":"bylaw","version":"1.0.0","event":"spend_recorded","data":[{"request_id":"4","agent":"5","vendor":"evil.testnet","amount":"10000000","outcome":"Rejected:vendor_not_allowlisted"}]}
 ```
-Emitted: `charter_updated, agent_registered, agent_rotated, agent_frozen, agent_unfrozen, agent_retired, job_posted, job_opened, bid_placed, job_awarded, work_submitted, work_reviewed, job_settled, job_refunded, job_expired, review_overridden, spend_recorded, spend_approved, spend_paid, claimed, seat_minted, rep_changed`.
+Emitted: `bylaw_updated, agent_registered, agent_rotated, agent_frozen, agent_unfrozen, agent_retired, job_posted, job_opened, bid_placed, job_awarded, work_submitted, work_reviewed, job_settled, job_refunded, job_expired, review_overridden, spend_recorded, spend_approved, spend_paid, claimed, seat_minted, rep_changed`.
 Notes: auto-freeze emits `agent_frozen` with `by` = the contract account and `reason` `"rep_below_threshold"`. `job_settled.credits.seats` is the amount distributed to seats (0 when no seats; then it is in `treasury`). Extra (not in INTERFACES): `treasury_funded {from, amount}`. NFT mints/transfers also emit standard `nep171` 1.2.0 `nft_mint` / `nft_transfer`.
 Not emitted (pools not implemented): `pool_*`.

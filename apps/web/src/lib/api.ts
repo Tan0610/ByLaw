@@ -1,7 +1,7 @@
 import { INDEXER_URL } from "./config";
 import { normAgent, normHistory, normJob, normSeat, normSpend, normStats, normTimeline, reviewFromTimeline } from "./normalize";
 import type {
-  Agent, AppConfig, CharterParams, CharterVersion, Health, Job, Report, Seat, Spend, Stats, TimelineEvent,
+  Agent, AppConfig, ByLawParams, ByLawVersion, Health, Job, Report, Seat, Spend, Stats, TimelineEvent,
 } from "./types";
 
 export class ApiError extends Error {
@@ -28,8 +28,8 @@ const enc = encodeURIComponent;
 export const api = {
   health: () => get<Health>("/health"),
   config: () => get<AppConfig>("/config"),
-  charter: () => get<CharterParams>("/charter"),
-  charterHistory: async (): Promise<CharterVersion[]> => normHistory(await get<unknown[]>("/charter/history")),
+  bylaw: () => get<ByLawParams>("/bylaw"),
+  bylawHistory: async (): Promise<ByLawVersion[]> => normHistory(await get<unknown[]>("/bylaw/history")),
   agents: async (): Promise<Agent[]> => (await get<unknown[]>("/agents")).map(normAgent),
   agent: async (id: string): Promise<Agent> => normAgent(await get(`/agents/${enc(id)}`)),
   jobs: async (q: { state?: string; customer?: string } = {}): Promise<Job[]> => {

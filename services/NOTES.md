@@ -5,10 +5,10 @@ Status as of 2026-11-12. Stack: TypeScript run directly by Node 26 (native type 
 ## Task status (TASKS.md section 4)
 | # | Task | Status |
 |---|---|---|
-| B1 | `packages/near-client`: `ContractClient` interface, `NearContractClient` (real), `FakeContract` (in-memory rules), shared `canonicalJson`/`artifactHash`/`scoreBid`/`computeWaterfall`/`budgetFor` | Done on fake. Real client written to CONTRACT_SPEC 4.12; **not run against a contract** (none deployed; `contracts/charter/ABI.md` did not exist yet, `src/lib.rs` is empty) |
+| B1 | `packages/near-client`: `ContractClient` interface, `NearContractClient` (real), `FakeContract` (in-memory rules), shared `canonicalJson`/`artifactHash`/`scoreBid`/`computeWaterfall`/`budgetFor` | Done on fake. Real client written to CONTRACT_SPEC 4.12; **not run against a contract** (none deployed; `contracts/bylaw/ABI.md` did not exist yet, `src/lib.rs` is empty) |
 | B2 | Indexer: poll-and-diff of views, SQLite, SSE, `reindex` | Done; tested |
 | B3 | REST per INTERFACES.md section 3 + `services/indexer/openapi.yaml` | Done; every endpoint has a contract test |
-| B4 | Contract-health toolkit: `contractFacts`, `charter.report.v1`, `deliverable_hash`, artifact store, `GET /artifacts/:hash` | Done; RPC path verified read-only on testnet (S6) |
+| B4 | Contract-health toolkit: `contractFacts`, `bylaw.report.v1`, `deliverable_hash`, artifact store, `GET /artifacts/:hash` | Done; RPC path verified read-only on testnet (S6) |
 | B5 | Agent runtime: env keys, `StepLedger` idempotency keyed `job_id:step`, JSON logs, graceful shutdown | Done; shutdown handler not observed on Windows (see below) |
 | B6 | Sales + Analyst (accept, `bidPrice` strategy, award, submit with LLM or template summary) | Done on fake |
 | B7 | Reviewer recomputes facts at the same block, rejects mismatches | Done; tamper path tested end to end |
@@ -24,7 +24,7 @@ npm test -w services/indexer                  # 18 tests: REST contract tests fo
 npm test -w services/agents                   # 10 tests: reviewer tamper detection, LLM fallback, strategy, ledger, attack, 2 e2e
 npm run dev -w services/agents                # AGENTS_MODE=fake (default): FakeContract + indexer on :8788 + 5 agents, demo customer posts jobs
 INDEXER_MODE=fake npm run dev -w services/indexer   # indexer alone over a seeded FakeContract
-INDEXER_MODE=near CHARTER_CONTRACT_ID=... npm run dev -w services/indexer
+INDEXER_MODE=near BYLAW_CONTRACT_ID=... npm run dev -w services/indexer
 npm run reindex -w services/indexer           # wipe chain-derived tables and rebuild (artifacts kept)
 npm run attack -w services/agents             # fake mode; near mode needs AGENTS_MODE=near ATTACK_CONFIRM=yes + treasurer keys
 npx tsc -p <pkg> --noEmit                     # typecheck, clean for all three packages
@@ -49,8 +49,8 @@ Useful env: `DEMO_TAMPER=analyst1` (forged report, reviewer rejects), `DEMO_BID_
 ## Deviations from the interfaces (also listed in INTERFACES.md section 7)
 - Extra endpoints: `POST /artifacts` (agents publish reports; server recomputes the hash) and `POST /heartbeat` (feeds `agents_alive`, `llm_ok`). Optional `INDEXER_WRITE_TOKEN` guards both.
 - `Agent.owner`, a `list_seats` view, `get_stats` fields and `seat_pool` are assumed; real client tolerates missing ones.
-- Timeline events are **derived by diffing views**, not read from NEP-297 logs. Consequences: an intermediate state that starts and ends between two polls is invisible (except bids/award/submit, which are reconstructed from job fields); a rejection is recorded as `work_reviewed{approve:false, inferred:true}`; `job_settled.credits` are computed from the current charter split; bid `score` uses the agent's rep at first sight, so it can differ after a `reindex`.
-- `/charter/history` only contains versions the indexer observed (no history view in the contract spec).
+- Timeline events are **derived by diffing views**, not read from NEP-297 logs. Consequences: an intermediate state that starts and ends between two polls is invisible (except bids/award/submit, which are reconstructed from job fields); a rejection is recorded as `work_reviewed{approve:false, inferred:true}`; `job_settled.credits` are computed from the current bylaw split; bid `score` uses the agent's rep at first sight, so it can differ after a `reindex`.
+- `/bylaw/history` only contains versions the indexer observed (no history view in the contract spec).
 - `/pools` always returns `[]`; `/attestations/:job_id` never verifies.
 - `upgradeable` fact is defined as `full_access_keys > 0`. `code_hash` is taken from `view_account.code_hash` (same hash `view_code` would give), saving one RPC call.
 

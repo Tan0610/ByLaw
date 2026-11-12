@@ -1,4 +1,4 @@
-import { canonicalJson, nearRpc, sha256Hex } from '@charter/near-client';
+import { canonicalJson, nearRpc, sha256Hex } from '@bylaw/near-client';
 
 /** Deterministic contract-health facts (INTERFACES.md section 4). */
 export interface Facts {

@@ -23,7 +23,7 @@ test("base58 and key generation produce NEAR-format keys", () => {
 });
 
 test("proposal wraps args as base64 in a Sputnik FunctionCall", () => {
-  const p = proposal("d", "charter.x.testnet", [{ method: "set_vendor", args: { vendor: "v.testnet", allowed: true } }]);
+  const p = proposal("d", "bylaw.x.testnet", [{ method: "set_vendor", args: { vendor: "v.testnet", allowed: true } }]);
   const act = p.proposal.kind.FunctionCall.actions[0];
   assert.equal(act.method_name, "set_vendor");
   assert.deepEqual(JSON.parse(Buffer.from(act.args, "base64").toString()), { vendor: "v.testnet", allowed: true });

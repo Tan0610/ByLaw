@@ -1,4 +1,4 @@
-//! Charter: an executable company constitution on NEAR.
+//! ByLaw: an executable company constitution on NEAR.
 //!
 //! Owner = a Sputnik DAO. Agents are sub-accounts `<name>.<this>` holding only a function-call
 //! key restricted to their role's `method_names` (see `register_agent`). Money lives in the
@@ -48,7 +48,7 @@ pub enum StorageKey {
     Vendors,
     Claimable,
     SpendLog,
-    CharterHistory,
+    ByLawHistory,
 }
 
 #[ext_contract(ext_ft)]
@@ -63,7 +63,7 @@ pub struct Contract {
     pub(crate) token: AccountId,
     pub(crate) guardians: Vec<AccountId>,
     pub(crate) paused: bool,
-    pub(crate) params: CharterParams,
+    pub(crate) params: ByLawParams,
     pub(crate) next_token_id: u64,
     pub(crate) next_job_id: u64,
     pub(crate) next_spend_id: u64,
@@ -90,8 +90,8 @@ pub struct Contract {
     pub(crate) total_in: u128,
     pub(crate) total_out: u128,
     pub(crate) jobs_settled: u64,
-    /// Previous charter versions (text + params), for `get_charter_version`.
-    pub(crate) charter_history: LookupMap<u32, CharterParams>,
+    /// Previous bylaw versions (text + params), for `get_bylaw_version`.
+    pub(crate) bylaw_history: LookupMap<u32, ByLawParams>,
 }
 
 #[near]
@@ -99,7 +99,7 @@ impl Contract {
     // ================================================================ init / owner
 
     #[init]
-    pub fn new(owner: AccountId, token: AccountId, params: CharterParamsJson) -> Self {
+    pub fn new(owner: AccountId, token: AccountId, params: ByLawParamsJson) -> Self {
         let p = params.into_params(1);
         Self::validate_params(&p);
         let mut c = Self {
@@ -131,27 +131,27 @@ impl Contract {
             total_in: 0,
             total_out: 0,
             jobs_settled: 0,
-            charter_history: LookupMap::new(StorageKey::CharterHistory),
+            bylaw_history: LookupMap::new(StorageKey::ByLawHistory),
         };
         let h = hex32(&c.params.text_hash);
         emit(
-            "charter_updated",
+            "bylaw_updated",
             json!({"version": c.params.version, "old_hash": hex32(&[0u8; 32]), "new_hash": h}),
         );
         c.paused = false;
         c
     }
 
-    /// Owner: replace charter text + params. version = old + 1; text_hash must equal sha256(text).
-    pub fn set_charter(&mut self, params: CharterParamsJson) {
+    /// Owner: replace bylaw text + params. version = old + 1; text_hash must equal sha256(text).
+    pub fn set_bylaw(&mut self, params: ByLawParamsJson) {
         self.require_owner();
         let old_hash = self.params.text_hash;
         let p = params.into_params(self.params.version + 1);
         Self::validate_params(&p);
         let old = std::mem::replace(&mut self.params, p);
-        self.charter_history.insert(old.version, old);
+        self.bylaw_history.insert(old.version, old);
         emit(
-            "charter_updated",
+            "bylaw_updated",
             json!({
                 "version": self.params.version,
                 "old_hash": hex32(&old_hash),
@@ -203,7 +203,7 @@ impl Contract {
             .ft_transfer(
                 to.clone(),
                 U128(a),
-                Some("charter treasury_withdraw".to_string()),
+                Some("bylaw treasury_withdraw".to_string()),
             )
             .then(
                 Self::ext(env::current_account_id())
@@ -726,7 +726,7 @@ impl Contract {
         ext_ft::ext(self.token.clone())
             .with_attached_deposit(NearToken::from_yoctonear(ONE_YOCTO))
             .with_static_gas(GAS_FT_TRANSFER)
-            .ft_transfer(who.clone(), U128(amt), Some("charter claim".to_string()))
+            .ft_transfer(who.clone(), U128(amt), Some("bylaw claim".to_string()))
             .then(
                 Self::ext(env::current_account_id())
                     .with_static_gas(GAS_CALLBACK)
@@ -893,8 +893,8 @@ impl Contract {
 
     // ================================================================ views
 
-    pub fn get_charter(&self) -> CharterParamsJson {
-        CharterParamsJson::from_params(&self.params)
+    pub fn get_bylaw(&self) -> ByLawParamsJson {
+        ByLawParamsJson::from_params(&self.params)
     }
 
     pub fn get_config(&self) -> ConfigView {
@@ -903,7 +903,7 @@ impl Contract {
             token: self.token.clone(),
             guardians: self.guardians.clone(),
             paused: self.paused,
-            charter_version: self.params.version,
+            bylaw_version: self.params.version,
             text_hash: hex32(&self.params.text_hash),
         }
     }
@@ -1034,18 +1034,18 @@ impl Contract {
             agents_total: self.agents.len(),
             seats_total: self.seats.len(),
             paused: self.paused,
-            charter_version: self.params.version,
+            bylaw_version: self.params.version,
         }
     }
 
-    /// A past (or the current) charter version: text, hash and params as they were.
-    pub fn get_charter_version(&self, version: u32) -> Option<CharterParamsJson> {
+    /// A past (or the current) bylaw version: text, hash and params as they were.
+    pub fn get_bylaw_version(&self, version: u32) -> Option<ByLawParamsJson> {
         if version == self.params.version {
-            return Some(CharterParamsJson::from_params(&self.params));
+            return Some(ByLawParamsJson::from_params(&self.params));
         }
-        self.charter_history
+        self.bylaw_history
             .get(&version)
-            .map(CharterParamsJson::from_params)
+            .map(ByLawParamsJson::from_params)
     }
 }
 
@@ -1069,10 +1069,10 @@ impl Contract {
         );
     }
 
-    fn validate_params(p: &CharterParams) {
+    fn validate_params(p: &ByLawParams) {
         require!(
             p.text.len() <= MAX_TEXT_BYTES,
-            "charter text exceeds 8192 bytes"
+            "bylaw text exceeds 8192 bytes"
         );
         require!(
             env::sha256_array(p.text.as_bytes()) == p.text_hash,
@@ -1274,7 +1274,7 @@ impl Contract {
             .ft_transfer(
                 req.vendor.clone(),
                 U128(req.amount),
-                Some(format!("charter spend {}", req.id)),
+                Some(format!("bylaw spend {}", req.id)),
             )
             .then(
                 Self::ext(env::current_account_id())

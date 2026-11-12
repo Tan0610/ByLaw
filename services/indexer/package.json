@@ -1,5 +1,5 @@
 {
-  "name": "@charter/indexer",
+  "name": "@bylaw/indexer",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -13,7 +13,7 @@
     "typecheck": "tsc -p . --noEmit"
   },
   "dependencies": {
-    "@charter/near-client": "*",
+    "@bylaw/near-client": "*",
     "@fastify/cors": "^11.0.0",
     "fastify": "^5.0.0"
   }

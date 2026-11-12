@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { canonicalJson, artifactHash, FakeContract, seedDemoWorld, DEMO_ACCOUNTS } from '@charter/near-client';
+import { canonicalJson, artifactHash, FakeContract, seedDemoWorld, DEMO_ACCOUNTS } from '@bylaw/near-client';
 import {
   CannedFactsProvider, TemplateSummarizer, createSummarizer, OpenAiCompatSummarizer, buildReport, reportHash,
   verifyReport, reasonHash, bidPrice, StepLedger, silentLogger, loadAgentKeys, runTreasurerAttack, FACT_KEYS,
@@ -23,7 +23,7 @@ test('canned facts are deterministic, sorted, and pinned to the requested block'
 test('report hash = sha256(canonical_json(artifact)), independent of key order', async () => {
   const facts = await new CannedFactsProvider().getFacts('x.testnet');
   const r = buildReport({ target: 'x.testnet', facts, summary: 's', model: 'm' });
-  const shuffled = { attestation: null, model: 'm', summary: 's', facts: { ...facts }, target: 'x.testnet', schema: 'charter.report.v1' };
+  const shuffled = { attestation: null, model: 'm', summary: 's', facts: { ...facts }, target: 'x.testnet', schema: 'bylaw.report.v1' };
   assert.equal(reportHash(r), artifactHash(shuffled));
   assert.match(reportHash(r), /^0x[0-9a-f]{64}$/);
 });

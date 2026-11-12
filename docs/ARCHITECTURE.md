@@ -1,7 +1,7 @@
 # Architecture
 
 ## 1. Principles
-1. **The contract is the company.** Charter rules, budgets, escrow and payouts live in one NEAR contract. Everything else is replaceable.
+1. **The contract is the company.** ByLaw rules, budgets, escrow and payouts live in one NEAR contract. Everything else is replaceable.
 2. **Agents are untrusted.** They are sub-accounts with narrow keys. LLM output is never trusted; the reviewer recomputes deterministic facts.
 3. **Humans hold the brakes.** The DAO owns all rule changes; guardians can freeze instantly.
 4. **Value never sits in agent accounts.** Function-call keys cannot attach deposits, so money lives in the contract ledger and is claimed by owners (pull-based).
@@ -9,12 +9,12 @@
 
 ## 2. System diagram
 ```
- Sputnik DAO  <name>.sputnikv2.testnet            (owner of Charter; council votes)
-      │ FunctionCall proposals (set_charter, register_agent, approve_spend, ...)
+ Sputnik DAO  <name>.sputnikv2.testnet            (owner of ByLaw; council votes)
+      │ FunctionCall proposals (set_bylaw, register_agent, approve_spend, ...)
       ▼
  ┌──────────────────────────────────────────────────────────────────────┐
- │ charter.<acct>.testnet  (Rust, near-sdk 5)                           │
- │  charter text+params · agent registry · NEP-171 (agents, seats)      │
+ │ bylaw.<acct>.testnet  (Rust, near-sdk 5)                           │
+ │  bylaw text+params · agent registry · NEP-171 (agents, seats)      │
  │  jobs/escrow/review · waterfall · budgets · reputation · pools       │
  │  ledger: claimable, treasury, escrow  ·  events (NEP-297)            │
  └───▲───────────▲──────────────▲──────────────────────▲───────────────┘
@@ -36,7 +36,7 @@
 ## 3. Components and ownership
 | Dir | Component | Lane |
 |---|---|---|
-| `contracts/charter/` | Main contract, DAO proposal templates | A |
+| `contracts/bylaw/` | Main contract, DAO proposal templates | A |
 | `contracts/mock-ft/` | Minimal NEP-141 "tUSD" with open faucet mint | A |
 | `services/agents/` | Agent runtime, LLM client, contract-health toolkit, artifact store | B |
 | `services/indexer/` | Indexer, REST, SSE | B |
@@ -48,10 +48,10 @@
 ## 4. Key flows
 
 ### 4.1 Governance
-DAO proposes `FunctionCall` → `charter.set_charter(...)`. The contract checks `predecessor == owner (the DAO)`. Emits `charter_updated{old_hash,new_hash,version}`. The UI renders a text diff.
+DAO proposes `FunctionCall` → `bylaw.set_bylaw(...)`. The contract checks `predecessor == owner (the DAO)`. Emits `bylaw_updated{old_hash,new_hash,version}`. The UI renders a text diff.
 
 ### 4.2 Agent registration (role enforcement at protocol level)
-`register_agent(kind, name, owner, pubkey)` (DAO only) → promise chain: `create_account` (`<name>.<contract>`), `transfer` (gas funding), `add_access_key` (function-call key: `receiver_id = charter`, `method_names = role methods`, generous `allowance`). NFT minted to `owner`. The key **cannot** call methods outside its role, enforced by the NEAR protocol before our code runs; the contract checks again (defence in depth).
+`register_agent(kind, name, owner, pubkey)` (DAO only) → promise chain: `create_account` (`<name>.<contract>`), `transfer` (gas funding), `add_access_key` (function-call key: `receiver_id = bylaw`, `method_names = role methods`, generous `allowance`). NFT minted to `owner`. The key **cannot** call methods outside its role, enforced by the NEAR protocol before our code runs; the contract checks again (defence in depth).
 
 | Kind | Allowed methods |
 |---|---|

@@ -1,10 +1,10 @@
-import { HASH_RE, artifactHash, canonicalJson, sha256Hex } from '@charter/near-client';
-import type { Job } from '@charter/near-client';
+import { HASH_RE, artifactHash, canonicalJson, sha256Hex } from '@bylaw/near-client';
+import type { Job } from '@bylaw/near-client';
 import { FACT_KEYS } from './facts.ts';
 import type { Facts, FactsProvider } from './facts.ts';
 
 export interface Report {
-  schema: 'charter.report.v1';
+  schema: 'bylaw.report.v1';
   target: string;
   facts: Facts;
   summary: string;
@@ -13,7 +13,7 @@ export interface Report {
 }
 
 export function buildReport(p: { target: string; facts: Facts; summary: string; model: string; attestation?: string | null }): Report {
-  return { schema: 'charter.report.v1', target: p.target, facts: p.facts, summary: p.summary, model: p.model, attestation: p.attestation ?? null };
+  return { schema: 'bylaw.report.v1', target: p.target, facts: p.facts, summary: p.summary, model: p.model, attestation: p.attestation ?? null };
 }
 
 /** deliverable_hash = sha256(canonical_json(whole artifact)). */
@@ -63,7 +63,7 @@ export interface Verdict { approve: boolean; reasons: string[]; recomputed?: Fac
 export async function verifyReport(job: Pick<Job, 'target' | 'deliverable_hash'>, report: Report | null, provider: FactsProvider): Promise<Verdict> {
   const reasons: string[] = [];
   if (!report) return { approve: false, reasons: ['artifact_unavailable'] };
-  if (report.schema !== 'charter.report.v1') reasons.push('bad_schema');
+  if (report.schema !== 'bylaw.report.v1') reasons.push('bad_schema');
   if (!job.deliverable_hash || !HASH_RE.test(job.deliverable_hash)) reasons.push('bad_deliverable_hash');
   let computed: string | null = null;
   try { computed = reportHash(report); } catch { reasons.push('artifact_not_canonicalizable'); }

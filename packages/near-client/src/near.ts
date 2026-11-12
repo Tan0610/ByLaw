@@ -1,5 +1,5 @@
 import type { ContractClient } from './client.ts';
-import type { Agent, CharterParams, Job, JobListOpts, Seat, SpendRequest, Stats } from './types.ts';
+import type { Agent, ByLawParams, Job, JobListOpts, Seat, SpendRequest, Stats } from './types.ts';
 
 /** Minimal JSON-RPC helper (no dependency). Used for views, facts and block info. */
 export async function nearRpc<T = unknown>(rpcUrl: string, method: string, params: unknown, retries = 3): Promise<T> {
@@ -9,7 +9,7 @@ export async function nearRpc<T = unknown>(rpcUrl: string, method: string, param
       const res = await fetch(rpcUrl, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ jsonrpc: '2.0', id: 'charter', method, params }),
+        body: JSON.stringify({ jsonrpc: '2.0', id: 'bylaw', method, params }),
       });
       if (res.status === 429 || res.status >= 500) throw new Error(`rpc http ${res.status}`);
       const body = (await res.json()) as { result?: T; error?: { name?: string; cause?: { name?: string }; message?: string; data?: unknown } };
@@ -32,7 +32,7 @@ export interface NearClientOptions {
   /** `ed25519:...` secret key, read from env by the caller; never logged. */
   privateKey?: string;
   gas?: bigint;
-  /** How [u8;32] args are sent. Reconcile with contracts/charter/ABI.md. */
+  /** How [u8;32] args are sent. Reconcile with contracts/bylaw/ABI.md. */
   hashEncoding?: 'hex' | 'bytes';
 }
 
@@ -61,13 +61,13 @@ const normSpend = (x: any): SpendRequest => ({
   id: s(x.id), agent: s(x.agent), vendor: s(x.vendor), amount: s(x.amount), job: sn(x.job),
   state: x.state, reason: x.reason ?? '', memo: x.memo, ts_ns: x.ts_ns === undefined ? undefined : s(x.ts_ns),
 });
-const normCharter = (c: any): CharterParams => ({ ...c, text_hash: hex32(c.text_hash) as string });
+const normByLaw = (c: any): ByLawParams => ({ ...c, text_hash: hex32(c.text_hash) as string });
 
 /**
  * Real implementation over NEAR RPC. Views are plain JSON-RPC `call_function` (no key needed);
  * change calls are signed with near-api-js (loaded lazily). NOT exercised against a live network in
  * this repo's tests: see services/NOTES.md. View/arg names follow CONTRACT_SPEC 4.12 and must be
- * reconciled with contracts/charter/ABI.md.
+ * reconciled with contracts/bylaw/ABI.md.
  */
 export class NearContractClient implements ContractClient {
   readonly accountId: string | null;
@@ -134,7 +134,7 @@ export class NearContractClient implements ContractClient {
   async nowNs() { return (await this.block()).ns; }
   async blockHeight() { return (await this.block()).height; }
 
-  async getCharter() { return normCharter(await this.view('get_charter')); }
+  async getByLaw() { return normByLaw(await this.view('get_bylaw')); }
   async getGuardians() { return (await this.view<string[]>('get_guardians')).map(s); }
   async getAgent(id: string) { const a = await this.view('get_agent', { token_id: id }); return a ? normAgent(a) : null; }
   async listAgents() { return (await this.view<any[]>('list_agents')).map(normAgent); }
@@ -202,14 +202,14 @@ export class NearContractClient implements ContractClient {
   async freezeAgent(id: string, reason: string) { await this.call('freeze_agent', { token_id: id, reason }); }
 }
 
-/** Parse NEP-297 `EVENT_JSON:` logs of the `charter` standard. */
+/** Parse NEP-297 `EVENT_JSON:` logs of the `bylaw` standard. */
 export function parseEvents(logs: string[]): { event: string; data: any[] }[] {
   const out: { event: string; data: any[] }[] = [];
   for (const l of logs) {
     if (!l.startsWith('EVENT_JSON:')) continue;
     try {
       const e = JSON.parse(l.slice('EVENT_JSON:'.length));
-      if (e?.standard === 'charter') out.push({ event: e.event, data: e.data ?? [] });
+      if (e?.standard === 'bylaw') out.push({ event: e.event, data: e.data ?? [] });
     } catch { /* ignore malformed logs */ }
   }
   return out;

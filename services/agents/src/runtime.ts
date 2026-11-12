@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import type { ContractClient, Kind } from '@charter/near-client';
+import type { ContractClient, Kind } from '@bylaw/near-client';
 import type { Logger } from './log.ts';
 import { errMsg } from './log.ts';
 

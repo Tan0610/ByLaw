@@ -1,7 +1,7 @@
 // Agent runtime entry. AGENTS_MODE=fake (default; zero network: FakeContract + embedded indexer + 5 agents)
 // or AGENTS_MODE=near (real contract, keys from AGENT_<NAME>_ACCOUNT / AGENT_<NAME>_PRIVATE_KEY).
 import { mkdirSync } from 'node:fs';
-import { DEMO_ACCOUNTS } from '@charter/near-client';
+import { DEMO_ACCOUNTS } from '@bylaw/near-client';
 import { CannedFactsProvider, RpcFactsProvider } from './facts.ts';
 import type { FactsProvider } from './facts.ts';
 import { createSummarizer } from './llm.ts';
@@ -48,7 +48,7 @@ if (mode === 'fake') {
   const only = (env.AGENTS_ONLY ? env.AGENTS_ONLY.split(',').map((s) => s.trim()) : [...AGENT_NAMES]) as AgentName[];
   const { keys, missing } = loadAgentKeys(env, only);
   if (missing.length) { log.error('missing agent env vars', { missing }); process.exit(2); }
-  if (!env.CHARTER_CONTRACT_ID || !env.INDEXER_URL) { log.error('CHARTER_CONTRACT_ID and INDEXER_URL are required in near mode'); process.exit(2); }
+  if (!env.BYLAW_CONTRACT_ID || !env.INDEXER_URL) { log.error('BYLAW_CONTRACT_ID and INDEXER_URL are required in near mode'); process.exit(2); }
   const store = new HttpArtifactStore(env.INDEXER_URL, env.INDEXER_WRITE_TOKEN || undefined);
   if (env.AGENT_LEDGER_DIR) mkdirSync(env.AGENT_LEDGER_DIR, { recursive: true });
   const agents = buildAgents({
@@ -67,6 +67,6 @@ if (mode === 'fake') {
     },
   });
   runner.start(agents);
-  log.info('agents running against NEAR', { contract: env.CHARTER_CONTRACT_ID, agents: only });
+  log.info('agents running against NEAR', { contract: env.BYLAW_CONTRACT_ID, agents: only });
   installShutdown(runner, log);
 }

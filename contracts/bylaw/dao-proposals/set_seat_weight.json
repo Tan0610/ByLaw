@@ -1,0 +1,23 @@
+{
+  "_comment": "Sputnik v2 add_proposal template for bylaw.set_seat_weight. Replace bylaw.YOU.testnet and the example args, then recompute \"args\" = base64(JSON.stringify(args_json)). Call <dao>.sputnikv2.testnet add_proposal with this \"proposal\" object and the DAO proposal bond as deposit.",
+  "_args_json": {
+    "token_id": "7",
+    "weight": 50
+  },
+  "proposal": {
+    "description": "ByLaw: Change a seat weight (checkpoints first).",
+    "kind": {
+      "FunctionCall": {
+        "receiver_id": "bylaw.YOU.testnet",
+        "actions": [
+          {
+            "method_name": "set_seat_weight",
+            "args": "eyJ0b2tlbl9pZCI6IjciLCJ3ZWlnaHQiOjUwfQ==",
+            "deposit": "0",
+            "gas": "50000000000000"
+          }
+        ]
+      }
+    }
+  }
+}

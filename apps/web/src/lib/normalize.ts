@@ -1,7 +1,7 @@
 // Maps indexer responses to the UI types. Accepts both the shapes in services/indexer (Lane B, the
 // source of truth) and the simpler shapes used by the MSW fixtures, so either backend renders the same.
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { Agent, CharterVersion, Job, Seat, Spend, Stats, TimelineEvent } from "./types";
+import type { Agent, ByLawVersion, Job, Seat, Spend, Stats, TimelineEvent } from "./types";
 
 const nsIso = (ns?: string | null) => (ns && ns !== "0" ? new Date(Number(BigInt(ns) / 1_000_000n)).toISOString() : "");
 
@@ -48,7 +48,7 @@ export function reviewFromTimeline(t: TimelineEvent[]): Job["review"] {
   return { approve: r.data.approve === true || r.data.approve === "true", reason: (r.data.reason as string) ?? undefined };
 }
 
-export function normHistory(list: any[]): CharterVersion[] {
+export function normHistory(list: any[]): ByLawVersion[] {
   return list.map((v) => ({
     version: Number(v.version), text: v.text ?? "", text_hash: v.text_hash,
     changed_at_iso: v.changed_at_iso ?? v.first_seen_iso ?? "", proposal_id: v.proposal_id, note: v.note,

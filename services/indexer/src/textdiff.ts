@@ -1,6 +1,6 @@
 export interface DiffLine { op: '+' | '-' | ' '; line: string }
 
-/** Line diff via LCS. Charter text is <= 8 KB so O(n*m) is fine. */
+/** Line diff via LCS. ByLaw text is <= 8 KB so O(n*m) is fine. */
 export function lineDiff(a: string, b: string): DiffLine[] {
   const x = a.split('\n');
   const y = b.split('\n');

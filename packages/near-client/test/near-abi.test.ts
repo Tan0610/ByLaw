@@ -1,4 +1,4 @@
-// Checks that NearContractClient's view calls match contracts/charter/ABI.md (argument names and
+// Checks that NearContractClient's view calls match contracts/bylaw/ABI.md (argument names and
 // JSON encodings), with fetch stubbed so no network is used. Change calls (signed) are not covered here.
 import test, { afterEach } from 'node:test';
 import assert from 'node:assert/strict';
@@ -17,12 +17,12 @@ function stub(handler: (method: string, args: any) => unknown): Call[] {
     const args = JSON.parse(Buffer.from(p.args_base64, 'base64').toString('utf8'));
     calls.push({ method: p.method_name, args });
     const result = [...Buffer.from(JSON.stringify(handler(p.method_name, args)))];
-    return new Response(JSON.stringify({ jsonrpc: '2.0', id: 'charter', result: { result } }));
+    return new Response(JSON.stringify({ jsonrpc: '2.0', id: 'bylaw', result: { result } }));
   }) as typeof fetch;
   return calls;
 }
 
-const client = () => new NearContractClient({ rpcUrl: 'http://rpc.invalid', contractId: 'charter.x.testnet', tokenId: 'tusd.x.testnet' });
+const client = () => new NearContractClient({ rpcUrl: 'http://rpc.invalid', contractId: 'bylaw.x.testnet', tokenId: 'tusd.x.testnet' });
 const job = (id: number, state = 'Open') => ({
   id: String(id), customer: 'c.testnet', target: 't.testnet', price: '100000000', state, created_ns: '1',
   sales: '1', bids: [{ agent: '2', price: '80000000', ts_ns: '5', score: '72727272' }], winner: null, reviewer: null,
@@ -69,7 +69,7 @@ test('budget_of returns an object in the ABI; client returns its `budget` field'
 
 test('agent, job, seat and stats views decode the ABI shapes', async () => {
   stub((m) => {
-    if (m === 'get_agent') return { token_id: '7', account: 'analyst-1.charter.x.testnet', kind: 'Analyst', state: 'Active', owner: 'bob.testnet', rep: 110, delivered: 1, rejected: 0, win_start_ns: '0', win_spent: '0', budget: '31000000', method_names: 'place_bid,submit_work' };
+    if (m === 'get_agent') return { token_id: '7', account: 'analyst-1.bylaw.x.testnet', kind: 'Analyst', state: 'Active', owner: 'bob.testnet', rep: 110, delivered: 1, rejected: 0, win_start_ns: '0', win_spent: '0', budget: '31000000', method_names: 'place_bid,submit_work' };
     if (m === 'get_job') return { ...job(1, 'Settled'), deliverable_hash: '0x' + 'ab'.repeat(32) };
     if (m === 'list_seats') return [{ token_id: '12', owner: 'carol.testnet', weight: 100, last_acc: '0', pending: '1500000' }];
     if (m === 'get_stats') return { treasury: '1', escrow_total: '2', claimable_total: '3', pools_total: '0', seat_pool: '4', total_in: '10', total_out: '0', jobs_total: '3', jobs_settled: '1', agents_total: 5, seats_total: 1, total_seat_weight: '100', solvent: true };
@@ -89,11 +89,11 @@ test('agent, job, seat and stats views decode the ABI shapes', async () => {
   assert.equal(st.jobs_total, 3);
 });
 
-test('parseEvents reads charter NEP-297 logs and ignores others', () => {
+test('parseEvents reads bylaw NEP-297 logs and ignores others', () => {
   const evs = parseEvents([
     'plain log',
     'EVENT_JSON:{"standard":"nep171","version":"1.2.0","event":"nft_mint","data":[]}',
-    'EVENT_JSON:{"standard":"charter","version":"1.0.0","event":"job_posted","data":[{"job_id":"4","customer":"c","target":"t","price":"1"}]}',
+    'EVENT_JSON:{"standard":"bylaw","version":"1.0.0","event":"job_posted","data":[{"job_id":"4","customer":"c","target":"t","price":"1"}]}',
     'EVENT_JSON:{not json',
   ]);
   assert.deepEqual(evs.map((e) => e.event), ['job_posted']);

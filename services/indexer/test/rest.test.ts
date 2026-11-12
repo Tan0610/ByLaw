@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { FakeContract, ManualClock, seedDemoWorld, DEMO_ACCOUNTS as D, sha256Hex, artifactHash } from '@charter/near-client';
+import { FakeContract, ManualClock, seedDemoWorld, DEMO_ACCOUNTS as D, sha256Hex, artifactHash } from '@bylaw/near-client';
 import { createIndexerApp, Indexer, Db } from '../src/index.ts';
 
 const H = sha256Hex('deliverable');
@@ -26,7 +26,7 @@ async function setup() {
   await fake.as(D.treasurer).requestSpend('evil.testnet', '1000000', null, 'attack');
   await fake.as(D.customer).postJob('y.testnet', '20000000');
   await r.indexer.poll();
-  fake.setCharter({ text: 'Charter v2\nsecond line' });
+  fake.setByLaw({ text: 'ByLaw v2\nsecond line' });
   await r.indexer.poll();
   return { clock, fake, ...r, jobId: id };
 }
@@ -47,22 +47,22 @@ test('GET /health', async () => {
   assert.equal(r.body.llm_ok, true);
 });
 
-test('GET /config and /charter and /charter/history (with diff)', async () => {
+test('GET /config and /bylaw and /bylaw/history (with diff)', async () => {
   const { app, fake } = await setup();
   const c = await get(app, '/config');
   assert.equal(c.body.contract_id, fake.contractId);
   assert.deepEqual(c.body.guardians, ['guardian.fake.testnet']);
-  assert.equal(c.body.charter.version, 2);
-  assert.match(c.body.charter.text_hash, /^0x[0-9a-f]{64}$/);
-  const ch = await get(app, '/charter');
+  assert.equal(c.body.bylaw.version, 2);
+  assert.match(c.body.bylaw.text_hash, /^0x[0-9a-f]{64}$/);
+  const ch = await get(app, '/bylaw');
   assert.equal(ch.body.version, 2);
   assert.equal(ch.body.split.producer, 5500);
-  const h = await get(app, '/charter/history');
+  const h = await get(app, '/bylaw/history');
   assert.equal(h.body.length, 2);
   assert.equal(h.body[0].diff.length, 0);
   assert.ok(h.body[1].diff.some((d: any) => d.op === '+' && d.line === 'second line'));
   assert.ok(h.body[1].diff.some((d: any) => d.op === '-'));
-  assert.equal(h.body[1].text, 'Charter v2\nsecond line');
+  assert.equal(h.body[1].text, 'ByLaw v2\nsecond line');
 });
 
 test('GET /agents and /agents/:id', async () => {
@@ -148,7 +148,7 @@ test('GET /claimable/:account', async () => {
 
 test('artifacts: POST stores by canonical hash, GET returns report JSON, bad input rejected', async () => {
   const { app } = await setup();
-  const art = { schema: 'charter.report.v1', target: 'x.testnet', facts: { b: 1, a: 2 }, summary: 's', model: 'm', attestation: null };
+  const art = { schema: 'bylaw.report.v1', target: 'x.testnet', facts: { b: 1, a: 2 }, summary: 's', model: 'm', attestation: null };
   const post = await app.inject({ method: 'POST', url: '/artifacts', payload: art });
   assert.equal(post.statusCode, 201);
   const { hash } = JSON.parse(post.body);
@@ -165,7 +165,7 @@ test('write token protects POST endpoints when configured', async () => {
   const fake = new FakeContract();
   seedDemoWorld(fake);
   const { app } = await createIndexerApp({ client: fake.as(null), cfg: { contract_id: 'c', dao_id: 'd', token_id: 't' }, server: { writeToken: 'sekret' } });
-  const art = { schema: 'charter.report.v1', target: 'x', facts: {}, summary: '', model: '', attestation: null };
+  const art = { schema: 'bylaw.report.v1', target: 'x', facts: {}, summary: '', model: '', attestation: null };
   assert.equal((await app.inject({ method: 'POST', url: '/artifacts', payload: art })).statusCode, 401);
   assert.equal((await app.inject({ method: 'POST', url: '/artifacts', payload: art, headers: { 'x-indexer-token': 'sekret' } })).statusCode, 201);
 });
@@ -231,7 +231,7 @@ test('reindex rebuilds identical state (incl. timeline) from an empty DB', async
     agents: (await get(app, '/agents')).body,
     spends: (await get(app, '/spends')).body,
   };
-  const art = { schema: 'charter.report.v1', target: 'x', facts: {}, summary: '', model: '', attestation: null };
+  const art = { schema: 'bylaw.report.v1', target: 'x', facts: {}, summary: '', model: '', attestation: null };
   indexer.db.putArtifact(artifactHash(art), JSON.stringify(art));
   const r = await indexer.reindex();
   assert.ok(r.events > 0);
@@ -253,7 +253,7 @@ test('a new Indexer on an existing DB does not duplicate events (idempotent)', a
 
 test('openapi.yaml documents every route', async () => {
   const yaml = readFileSync(new URL('../openapi.yaml', import.meta.url), 'utf8');
-  const paths = ['/health', '/config', '/charter', '/charter/history', '/agents', '/agents/{token_id}', '/jobs', '/jobs/{id}',
+  const paths = ['/health', '/config', '/bylaw', '/bylaw/history', '/agents', '/agents/{token_id}', '/jobs', '/jobs/{id}',
     '/jobs/{id}/timeline', '/spends', '/pools', '/seats', '/seats/{token_id}', '/claimable/{account}', '/artifacts/{hash}',
     '/attestations/{job_id}', '/stats', '/stream', '/heartbeat'];
   for (const p of paths) assert.ok(yaml.includes(`  ${p}:`), `openapi missing ${p}`);

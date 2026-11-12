@@ -1,5 +1,5 @@
 {
-  "_comment": "Sputnik v2 add_proposal template for charter.set_guardians. Replace charter.YOU.testnet and the example args, then recompute \"args\" = base64(JSON.stringify(args_json)). Call <dao>.sputnikv2.testnet add_proposal with this \"proposal\" object and the DAO proposal bond as deposit.",
+  "_comment": "Sputnik v2 add_proposal template for bylaw.set_guardians. Replace bylaw.YOU.testnet and the example args, then recompute \"args\" = base64(JSON.stringify(args_json)). Call <dao>.sputnikv2.testnet add_proposal with this \"proposal\" object and the DAO proposal bond as deposit.",
   "_args_json": {
     "guardians": [
       "guardian1.testnet",
@@ -7,10 +7,10 @@
     ]
   },
   "proposal": {
-    "description": "Charter: Replace the guardian list (max 16).",
+    "description": "ByLaw: Replace the guardian list (max 16).",
     "kind": {
       "FunctionCall": {
-        "receiver_id": "charter.YOU.testnet",
+        "receiver_id": "bylaw.YOU.testnet",
         "actions": [
           {
             "method_name": "set_guardians",

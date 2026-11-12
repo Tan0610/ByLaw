@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DEMO_ACCOUNTS as D, artifactHash } from '@charter/near-client';
+import { DEMO_ACCOUNTS as D, artifactHash } from '@bylaw/near-client';
 import { CannedFactsProvider, createFakeStack, createLogger } from '../src/index.ts';
 
 const logs: string[] = [];
@@ -27,7 +27,7 @@ test('e2e: indexer + 5 agents + FakeContract: post -> accept -> bids -> award ->
     // the deliverable is served by the indexer and its hash matches
     const art = await json(s.base, `/artifacts/${job.deliverable.hash}`);
     assert.equal(art.status, 200);
-    assert.equal(art.body.schema, 'charter.report.v1');
+    assert.equal(art.body.schema, 'bylaw.report.v1');
     assert.equal(artifactHash(art.body), job.deliverable.hash);
     assert.equal(art.body.model, 'template-v1');
     const tl = (await json(s.base, `/jobs/${id}/timeline`)).body.map((e: any) => e.type);

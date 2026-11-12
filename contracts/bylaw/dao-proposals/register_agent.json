@@ -1,5 +1,5 @@
 {
-  "_comment": "Sputnik v2 add_proposal template for charter.register_agent. Replace charter.YOU.testnet and the example args, then recompute \"args\" = base64(JSON.stringify(args_json)). Call <dao>.sputnikv2.testnet add_proposal with this \"proposal\" object and the DAO proposal bond as deposit.",
+  "_comment": "Sputnik v2 add_proposal template for bylaw.register_agent. Replace bylaw.YOU.testnet and the example args, then recompute \"args\" = base64(JSON.stringify(args_json)). Call <dao>.sputnikv2.testnet add_proposal with this \"proposal\" object and the DAO proposal bond as deposit.",
   "_args_json": {
     "kind": "Analyst",
     "name": "analyst-1",
@@ -7,10 +7,10 @@
     "pubkey": "ed25519:REPLACE_WITH_AGENT_PUBLIC_KEY"
   },
   "proposal": {
-    "description": "Charter: Create <name>.<charter> with a function-call key restricted to the role method_names; mint the agent NFT to owner_account. Deposit >= 0.5 NEAR funds the sub-account.",
+    "description": "ByLaw: Create <name>.<bylaw> with a function-call key restricted to the role method_names; mint the agent NFT to owner_account. Deposit >= 0.5 NEAR funds the sub-account.",
     "kind": {
       "FunctionCall": {
-        "receiver_id": "charter.YOU.testnet",
+        "receiver_id": "bylaw.YOU.testnet",
         "actions": [
           {
             "method_name": "register_agent",

@@ -1,8 +1,8 @@
 import Fastify from 'fastify';
 import type { FastifyInstance, FastifyReply } from 'fastify';
 import cors from '@fastify/cors';
-import { HASH_RE, artifactHash } from '@charter/near-client';
-import type { Seat } from '@charter/near-client';
+import { HASH_RE, artifactHash } from '@bylaw/near-client';
+import type { Seat } from '@bylaw/near-client';
 import type { Indexer, Ping } from './indexer.ts';
 
 export interface ServerOptions {
@@ -43,20 +43,20 @@ export async function buildServer(ix: Indexer, opts: ServerOptions = {}): Promis
   app.get('/health', async () => ix.health());
 
   app.get('/config', async () => {
-    const c = ix.currentCharter();
+    const c = ix.currentByLaw();
     return {
       contract_id: ix.cfg.contract_id, dao_id: ix.cfg.dao_id, token_id: ix.cfg.token_id,
       guardians: await ix.client.getGuardians(),
-      charter: c ? { version: c.version, text_hash: c.text_hash } : null,
+      bylaw: c ? { version: c.version, text_hash: c.text_hash } : null,
     };
   });
 
-  app.get('/charter', async () => {
-    const c = ix.currentCharter();
-    if (!c) throw new ApiError(503, 'not_indexed', 'charter not indexed yet');
+  app.get('/bylaw', async () => {
+    const c = ix.currentByLaw();
+    if (!c) throw new ApiError(503, 'not_indexed', 'bylaw not indexed yet');
     return c;
   });
-  app.get('/charter/history', async () => ix.charterHistory());
+  app.get('/bylaw/history', async () => ix.bylawHistory());
 
   app.get('/agents', async () => ix.db.allJson<any>('agents').map((a) => ix.agentView(a)));
   app.get<{ Params: { token_id: string } }>('/agents/:token_id', async (req) => {
@@ -115,8 +115,8 @@ export async function buildServer(ix: Indexer, opts: ServerOptions = {}): Promis
   app.post('/artifacts', async (req, reply) => {
     checkWrite(req.headers);
     const a = req.body as Record<string, unknown> | null;
-    if (!a || typeof a !== 'object' || a.schema !== 'charter.report.v1' || typeof a.target !== 'string' || typeof a.facts !== 'object') {
-      throw new ApiError(400, 'bad_request', 'body must be a charter.report.v1 artifact');
+    if (!a || typeof a !== 'object' || a.schema !== 'bylaw.report.v1' || typeof a.target !== 'string' || typeof a.facts !== 'object') {
+      throw new ApiError(400, 'bad_request', 'body must be a bylaw.report.v1 artifact');
     }
     if (JSON.stringify(a).length > 256_000) throw new ApiError(413, 'too_large', 'artifact too large');
     const hash = artifactHash(a);

@@ -147,8 +147,8 @@ impl Contract {
     pub fn nft_metadata(&self) -> NFTContractMetadata {
         NFTContractMetadata {
             spec: "nft-1.0.0".to_string(),
-            name: "Charter agents and seats".to_string(),
-            symbol: "CHARTER".to_string(),
+            name: "ByLaw agents and seats".to_string(),
+            symbol: "BYLAW".to_string(),
             icon: None,
             base_uri: None,
             reference: None,
@@ -232,7 +232,7 @@ impl Contract {
         let owner = self.nft_owner.get(&id)?.clone();
         let (title, extra) = if let Some(a) = self.agents.get(&id) {
             (
-                format!("Charter agent #{} ({})", id, a.kind.as_str()),
+                format!("ByLaw agent #{} ({})", id, a.kind.as_str()),
                 json!({
                     "kind": "agent",
                     "role": a.kind.as_str(),
@@ -246,7 +246,7 @@ impl Contract {
             )
         } else if let Some(s) = self.seats.get(&id) {
             (
-                format!("Charter seat #{}", id),
+                format!("ByLaw seat #{}", id),
                 json!({"kind": "seat", "weight": s.weight, "pending": self.pending_of(s).to_string()}).to_string(),
             )
         } else {

@@ -1,4 +1,4 @@
-import type { ContractClient } from '@charter/near-client';
+import type { ContractClient } from '@bylaw/near-client';
 import { Db } from './db.ts';
 import { Indexer } from './indexer.ts';
 import type { IndexerConfig } from './indexer.ts';

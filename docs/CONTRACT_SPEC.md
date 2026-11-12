@@ -1,4 +1,4 @@
-# Contract Specification: `charter`
+# Contract Specification: `bylaw`
 
 Owner: Lane A. Frozen with `INTERFACES.md`. Changes need an `interface-change` entry and notice to the other lanes.
 
@@ -7,11 +7,11 @@ Rust, near-sdk 5. Amounts are `U128` strings; tUSD has 6 decimals; time in nanos
 ## 1. Accounts
 | Role | Account |
 |---|---|
-| Contract | `charter.<you>.testnet` |
+| Contract | `bylaw.<you>.testnet` |
 | Owner | the Sputnik DAO (`<name>.sputnikv2.testnet`) |
 | Token | `tusd.<you>.testnet` (our mock NEP-141) |
 | Guardians | accounts set by the DAO |
-| Agents | sub-accounts `<name>.charter.<you>.testnet` |
+| Agents | sub-accounts `<name>.bylaw.<you>.testnet` |
 
 ## 2. Types
 ```rust
@@ -20,12 +20,12 @@ enum AgentState { Active, Frozen, Retired }
 
 struct Agent {
   token_id: u64, account: AccountId, kind: Kind, state: AgentState,
-  rep: u32,                       // starts at charter.rep_start
+  rep: u32,                       // starts at bylaw.rep_start
   delivered: u32, rejected: u32,
   win_start_ns: u64, win_spent: u128,   // rolling budget window
 }
 
-struct CharterParams {
+struct ByLawParams {
   version: u32, text: String /*<=8192 bytes*/, text_hash: [u8;32],  // sha256(text)
   min_price: u128, max_price: u128,
   bid_window_ns: u64, submit_window_ns: u64, review_window_ns: u64,
@@ -65,7 +65,7 @@ acc: u128  (seat accumulator, scaled 1e18)   total_seat_weight: u64
 
 ### 4.1 Owner (DAO only, `predecessor == owner`)
 - `new(owner, token, params)` `#[init]`
-- `set_charter(params)` : validates `split` sum, `text_hash == sha256(text)`, `version = old+1`; emits old and new hashes.
+- `set_bylaw(params)` : validates `split` sum, `text_hash == sha256(text)`, `version = old+1`; emits old and new hashes.
 - `register_agent(kind, name, owner_account, pubkey) -> Promise` `#[payable]`
   - Attached deposit ≥ gas funding (default 0.5 NEAR) + storage; creates `<name>.<this>`; funds it; adds a **function-call key** (`receiver = this`, `method_names = role set`, `allowance = generous`). No full-access key. Callback mints the NFT and registers the agent. **[VERIFY]** contract can add a function-call key in the same promise chain.
 - `rotate_agent(token_id, new_name, pubkey)` : retires the old identity, creates a new sub-account, rebinds the NFT, carries rep.
@@ -124,10 +124,10 @@ escrow[job] -= P
 Standard methods. Seat transfer calls an internal checkpoint first. Agent NFT transfer changes where future earnings go; it does not move the sub-account key. Transfers blocked for `Retired`.
 
 ### 4.12 Views
-`get_charter`, `get_agent(token_id)`, `list_agents`, `get_job(id)`, `list_jobs(from,limit,state?)`, `get_spend(id)`, `list_spends`, `get_pool(id)`, `claimable_of(account)`, `budget_of(token_id)`, `seat_pending(token_id)`, `get_stats()`, `get_guardians`.
+`get_bylaw`, `get_agent(token_id)`, `list_agents`, `get_job(id)`, `list_jobs(from,limit,state?)`, `get_spend(id)`, `list_spends`, `get_pool(id)`, `claimable_of(account)`, `budget_of(token_id)`, `seat_pending(token_id)`, `get_stats()`, `get_guardians`.
 
-## 5. Events (NEP-297, standard `charter`, `1.0.0`)
-`charter_updated`, `agent_registered`, `agent_rotated`, `agent_frozen`, `agent_unfrozen`, `agent_retired`, `job_posted`, `job_opened`, `bid_placed`, `job_awarded`, `work_submitted`, `work_reviewed`, `job_settled`, `job_refunded`, `job_expired`, `review_overridden`, `spend_recorded` (with outcome), `spend_approved`, `spend_paid`, `pool_opened`, `pool_contributed`, `pool_paid`, `pool_refunded`, `claimed`, `seat_minted`, `rep_changed`. Fields in `INTERFACES.md`.
+## 5. Events (NEP-297, standard `bylaw`, `1.0.0`)
+`bylaw_updated`, `agent_registered`, `agent_rotated`, `agent_frozen`, `agent_unfrozen`, `agent_retired`, `job_posted`, `job_opened`, `bid_placed`, `job_awarded`, `work_submitted`, `work_reviewed`, `job_settled`, `job_refunded`, `job_expired`, `review_overridden`, `spend_recorded` (with outcome), `spend_approved`, `spend_paid`, `pool_opened`, `pool_contributed`, `pool_paid`, `pool_refunded`, `claimed`, `seat_minted`, `rep_changed`. Fields in `INTERFACES.md`.
 
 ## 6. Invariants (tested)
 - C1 Job conservation: waterfall credits sum exactly to `price`.
@@ -136,7 +136,7 @@ Standard methods. Seat transfer calls an internal checkpoint first. Agent NFT tr
 - C4 Role enforcement: every agent method rejects a caller of the wrong kind (independent of key scoping).
 - C5 Producer owner ≠ reviewer owner for every reviewed job.
 - C6 Frozen/Retired agents cannot act.
-- C7 Only the owner changes charter, agents, vendors, seats; guardians can only freeze.
+- C7 Only the owner changes bylaw, agents, vendors, seats; guardians can only freeze.
 - C8 Seat dividends: `Σ claimed + Σ pending ≤ Σ seat shares`.
 - C9 Job states move forward only (except the single re-open).
 - C10 Reputation never underflows; auto-freeze triggers at the threshold.
@@ -152,4 +152,4 @@ State before promises; callbacks `#[private]` and idempotent; bounded collection
 4. Testnet smoke through `scripts/e2e`.
 
 ## 9. Deployment
-Scripted and documented in `contracts/charter/deploy.md`. A human signs deploy and `init`. DAO bootstrap templates in `contracts/charter/dao-proposals/*.json` for every owner method.
+Scripted and documented in `contracts/bylaw/deploy.md`. A human signs deploy and `init`. DAO bootstrap templates in `contracts/bylaw/dao-proposals/*.json` for every owner method.

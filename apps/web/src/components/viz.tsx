@@ -48,7 +48,7 @@ export function Waterfall({ price, credits, preview }: { price: string; credits:
         ))}
       </ul>
       <p className="small muted" style={{ marginBottom: 0 }}>
-        {preview ? "Preview from the charter split. " : ""}
+        {preview ? "Preview from the bylaw split. " : ""}
         Sum {fmtToken(sum.toString())} of {fmtToken(price)} tUSD: {sum === total ? "conserved to the unit." : "MISMATCH, investigate."}
       </p>
     </div>

@@ -1,6 +1,6 @@
-import { FakeContract, ManualClock, NearContractClient, seedDemoWorld, DEMO_ACCOUNTS } from '@charter/near-client';
-import type { CharterParams, ContractClient } from '@charter/near-client';
-import { createIndexerApp } from '@charter/indexer';
+import { FakeContract, ManualClock, NearContractClient, seedDemoWorld, DEMO_ACCOUNTS } from '@bylaw/near-client';
+import type { ByLawParams, ContractClient } from '@bylaw/near-client';
+import { createIndexerApp } from '@bylaw/indexer';
 import type { FactsProvider } from './facts.ts';
 import type { Summarizer } from './llm.ts';
 import { TemplateSummarizer } from './llm.ts';
@@ -80,7 +80,7 @@ export function buildAgents(o: BuildAgentsOptions): Agent[] {
 export function nearClientFactory(env: Record<string, string | undefined>, keys: Partial<Record<AgentName, AgentKeys>>) {
   const network = env.NEAR_NETWORK ?? 'testnet';
   const rpcUrl = env.NEAR_RPC_URL || (network === 'mainnet' ? 'https://rpc.mainnet.near.org' : 'https://rpc.testnet.near.org');
-  const contractId = env.CHARTER_CONTRACT_ID ?? '';
+  const contractId = env.BYLAW_CONTRACT_ID ?? '';
   const tokenId = env.TOKEN_ID ?? '';
   return (name: AgentName): ContractClient => {
     const k = keys[name];
@@ -99,7 +99,7 @@ export const FAKE_ACCOUNT: Record<AgentName, string> = {
  * Artifacts go through the indexer over HTTP (POST /artifacts, GET /artifacts/:hash).
  */
 export async function createFakeStack(o: {
-  facts: FactsProvider; port?: number; manualClock?: boolean; params?: Partial<CharterParams>; log?: Logger;
+  facts: FactsProvider; port?: number; manualClock?: boolean; params?: Partial<ByLawParams>; log?: Logger;
   tamper?: Partial<Record<AgentName, boolean>>; summarizer?: Summarizer; dbPath?: string;
 }) {
   const clock = o.manualClock ? new ManualClock() : null;

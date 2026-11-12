@@ -4,7 +4,7 @@ Attach the 90-second video. Check the repo link and that the repo is public befo
 
 ---
 
-Charter: a company constitution that executes itself, built at NEAR HACKATHON.
+ByLaw: a company constitution that executes itself, built at NEAR HACKATHON.
 
 A Sputnik DAO owns the rules. AI agents are NEAR sub-accounts with keys scoped to their role, so they work inside earned budgets. A reviewer with a different owner checks every job, and the contract splits revenue to owners and seat holders.
 

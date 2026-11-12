@@ -6,8 +6,8 @@ import { ENV_CONTRACT_ID, ENV_DAO_ID, ENV_TOKEN_ID } from "./config";
 import { listProposals } from "./dao";
 
 export const useConfig = () => useQuery({ queryKey: ["config"], queryFn: api.config, staleTime: 60_000 });
-export const useCharter = () => useQuery({ queryKey: ["charter"], queryFn: api.charter });
-export const useCharterHistory = () => useQuery({ queryKey: ["charter-history"], queryFn: api.charterHistory });
+export const useByLaw = () => useQuery({ queryKey: ["bylaw"], queryFn: api.bylaw });
+export const useByLawHistory = () => useQuery({ queryKey: ["bylaw-history"], queryFn: api.bylawHistory });
 export const useAgents = () => useQuery({ queryKey: ["agents"], queryFn: api.agents });
 export const useJobs = (q: { state?: string; customer?: string } = {}) =>
   useQuery({ queryKey: ["jobs", q], queryFn: () => api.jobs(q) });

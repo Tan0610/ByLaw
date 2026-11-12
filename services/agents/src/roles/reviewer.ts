@@ -1,4 +1,4 @@
-import { listAllJobs } from '@charter/near-client';
+import { listAllJobs } from '@bylaw/near-client';
 import type { Agent, AgentContext } from '../runtime.ts';
 import { whoAmI } from '../runtime.ts';
 import type { FactsProvider } from '../facts.ts';

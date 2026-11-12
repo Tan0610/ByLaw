@@ -3,8 +3,8 @@
 ## What was run (real results)
 | Check | Result |
 |---|---|
-| `cargo test -p charter -p mock-ft` | **charter: 66 passed, 0 failed** (63 unit + 3 proptest properties, about 102 s); **mock-ft: 4 passed, 0 failed** |
-| `cargo build --target wasm32-unknown-unknown --release -p charter -p mock-ft` | **OK**: `charter.wasm` 843,812 bytes, `mock_ft.wasm` 252,725 bytes (rustc 1.99, no wasm-opt) |
+| `cargo test -p bylaw -p mock-ft` | **bylaw: 66 passed, 0 failed** (63 unit + 3 proptest properties, about 102 s); **mock-ft: 4 passed, 0 failed** |
+| `cargo build --target wasm32-unknown-unknown --release -p bylaw -p mock-ft` | **OK**: `bylaw.wasm` 843,812 bytes, `mock_ft.wasm` 252,725 bytes (rustc 1.99, no wasm-opt) |
 | near-workspaces suite (`contracts/integration-tests`) | written, **NOT RUN** (sandbox does not run on native Windows; no network transactions allowed) |
 | Testnet deploy, spikes S3/S4 | **NOT RUN** (human-only) |
 | `rust-analyzer diagnostics .` | 0 diagnostics (used while builds were blocked) |
@@ -13,7 +13,7 @@ Environment caveat: this Windows machine has an Application Control (reputation-
 intermittently blocks freshly built executables (`os error 4551`). For a while every build script
 was blocked; later runs were allowed. `cargo test -p mock-ft` **alone** is still blocked (different
 feature unification gives a new `getrandom` build script), so run both packages together:
-`cargo test -p charter -p mock-ft`. A `RUSTFLAGS="-C target-cpu=mvp"` wasm build was also
+`cargo test -p bylaw -p mock-ft`. A `RUSTFLAGS="-C target-cpu=mvp"` wasm build was also
 blocked, so compatibility of the rustc 1.99 wasm with the NEAR VM is **unverified** (see deploy.md).
 
 Bug found by the property tests and fixed: proptest cases shared mocked storage (`testing_env!`
@@ -23,7 +23,7 @@ underflow was found by review and fixed before the first run (see Design decisio
 ## Status per task (TASKS.md section 3)
 | # | Task | Status |
 |---|---|---|
-| A1 | Skeleton, types, owner/guardian auth, pause, charter set/validate | done, tests pass |
+| A1 | Skeleton, types, owner/guardian auth, pause, bylaw set/validate | done, tests pass |
 | A2 | mock-ft NEP-141 (open capped `mint`, `storage_deposit`, `ft_transfer(_call)`, `ft_balance_of`, `ft_metadata` 6 decimals) | done, 4 tests pass |
 | A3 | `register_agent` promise chain (create_account + transfer + function-call key with role `method_names`, NFT mint in callback, refund on failure), `rotate_agent`, freeze/unfreeze/retire | code + unit tests (receipt inspection of the key's `method_names`) pass |
 | A4 | `ft_on_transfer`, accept/bid/award (reputation-weighted score)/submit/review (owner conflict re-check, single re-open, refund)/`expire_job`/`override_review` | done, tests pass |
@@ -35,7 +35,7 @@ underflow was found by review and fixed before the first run (see Design decisio
 | A10 | near-workspaces suite | written, unrun |
 | A11 | `deploy.md` | written; nothing deployed |
 
-Tests written: `contracts/charter/src/tests.rs` has 63 unit tests + 3 proptest properties
+Tests written: `contracts/bylaw/src/tests.rs` has 63 unit tests + 3 proptest properties
 (`prop_invariants_hold_under_random_operations`, `prop_waterfall_conserves_value`,
 `prop_sliding_window_never_exceeds_budget`); `contracts/mock-ft` has 4 unit tests;
 `contracts/integration-tests/tests/sandbox.rs` has 1 lifecycle + role-key test.
@@ -46,7 +46,7 @@ Invariant coverage: C1 (`happy_path_waterfall_c1`, `prop_waterfall_conserves_val
 | Spike | Result |
 |---|---|
 | S3 (contract creates sub-account with only a function-call key) | **Not verifiable here** (no network transactions allowed, no sandbox). Verified against near-sdk 5.30.1 source: `Promise::create_account().transfer().add_access_key_allowance(pk, Allowance::limited(..), receiver, "m1,m2")` exists and maps to `promise_batch_action_add_key_allowance_with_function_call`; the unit test inspects the mocked receipt (`MockAction::AddKeyWithFunctionCall{method_names, receiver_id}`) and asserts no `AddKeyWithFullAccess`. Protocol-level rejection of a disallowed method is only covered by the unrun workspaces test. Adding a key in the same batch as `CreateAccount` is the standard pattern (actions after CreateAccount in one batch are allowed for the creator), but this was not re-checked against docs or a node here. Fallback if it fails on testnet: none needed in code; the sandbox test will show it. |
-| S4 (`ft_transfer_call` with JSON msg) | Not run on testnet; implemented in mock-ft + charter and covered by unit tests (pass) and the workspaces test (unrun). |
+| S4 (`ft_transfer_call` with JSON msg) | Not run on testnet; implemented in mock-ft + bylaw and covered by unit tests (pass) and the workspaces test (unrun). |
 
 ## Design decisions and spec deviations
 - **Pools skipped** (brief). Treasurer key `method_names` = `request_spend` only (a key cannot be widened later, so re-register/rotate treasurers if pools are added). No `pool_*` events; `pools_total` = 0.
@@ -60,8 +60,8 @@ Invariant coverage: C1 (`happy_path_waterfall_c1`, `prop_waterfall_conserves_val
 - `max_price` capped at 1e15 (1e9 tUSD) so `seats * 1e18` never overflows u128.
 - `claim(token?)` also checkpoints the caller's seats first. Pull-based: a customer refund is credited to `claimable`, never pushed.
 - Storage: jobs/spends are paid from the contract's NEAR balance (customers attach no NEAR via `ft_transfer_call`). Keep the contract funded; `min_price` limits spam.
-- `rotate_agent`: old account is unbound in the callback (its key can still sign, but the contract rejects it as "not a registered agent"); the old key is not deleted (after creation the sub-account is a separate account; the charter contract cannot delete its keys).
-- Lane B requests in INTERFACES §7 are implemented (owner in agent views, `list_seats` with `last_acc`, stats field names, hash encoding documented, `get_charter_version`, spend `ts_ns`/`memo`). Summary line appended under §7 Requests.
+- `rotate_agent`: old account is unbound in the callback (its key can still sign, but the contract rejects it as "not a registered agent"); the old key is not deleted (after creation the sub-account is a separate account; the bylaw contract cannot delete its keys).
+- Lane B requests in INTERFACES §7 are implemented (owner in agent views, `list_seats` with `last_acc`, stats field names, hash encoding documented, `get_bylaw_version`, spend `ts_ns`/`memo`). Summary line appended under §7 Requests.
 
 ## Open risks
 1. The near-workspaces suite is unrun: protocol-level rejection of a call outside `method_names` is unproven here (only the mocked receipt is inspected).
@@ -73,10 +73,10 @@ Invariant coverage: C1 (`happy_path_waterfall_c1`, `prop_waterfall_conserves_val
 ## Track proof
 | Track | Files | Command |
 |---|---|---|
-| security (role-scoped keys, budgets, freeze) | `contracts/charter/src/lib.rs` (`register_agent`, `create_agent_account`, `request_spend`, `pruned_log` sliding_window, `freeze_agent`), `method_names` in `contracts/charter/src/types.rs`, `contracts/integration-tests/tests/sandbox.rs` | `cargo test -p charter -p mock-ft role_keys`; `cargo test -p charter -p mock-ft c3_`; sandbox (unrun): `cd contracts/integration-tests && cargo test` |
-| social (DAO owns everything) | `require_owner` in `src/lib.rs`, `contracts/charter/dao-proposals/*.json` | `cargo test -p charter -p mock-ft c7_` |
-| business / agents (escrow, waterfall, claims) | `ft_on_transfer`, `award_job`, `review_work`, `internal_settle`, `claim` in `src/lib.rs` | `cargo test -p charter -p mock-ft happy_path`; `cargo test -p charter -p mock-ft prop_` |
-| nfts (agent + seat NFTs, seat_accumulator) | `src/nft.rs`, `mint_seat` / `internal_checkpoint` in `src/lib.rs` | `cargo test -p charter -p mock-ft seats`; `cargo test -p charter -p mock-ft nft_` |
-| swarms (reputation-weighted bidding; pools NOT implemented) | `internal_assign`, `score` in `src/lib.rs` | `cargo test -p charter -p mock-ft award_` |
+| security (role-scoped keys, budgets, freeze) | `contracts/bylaw/src/lib.rs` (`register_agent`, `create_agent_account`, `request_spend`, `pruned_log` sliding_window, `freeze_agent`), `method_names` in `contracts/bylaw/src/types.rs`, `contracts/integration-tests/tests/sandbox.rs` | `cargo test -p bylaw -p mock-ft role_keys`; `cargo test -p bylaw -p mock-ft c3_`; sandbox (unrun): `cd contracts/integration-tests && cargo test` |
+| social (DAO owns everything) | `require_owner` in `src/lib.rs`, `contracts/bylaw/dao-proposals/*.json` | `cargo test -p bylaw -p mock-ft c7_` |
+| business / agents (escrow, waterfall, claims) | `ft_on_transfer`, `award_job`, `review_work`, `internal_settle`, `claim` in `src/lib.rs` | `cargo test -p bylaw -p mock-ft happy_path`; `cargo test -p bylaw -p mock-ft prop_` |
+| nfts (agent + seat NFTs, seat_accumulator) | `src/nft.rs`, `mint_seat` / `internal_checkpoint` in `src/lib.rs` | `cargo test -p bylaw -p mock-ft seats`; `cargo test -p bylaw -p mock-ft nft_` |
+| swarms (reputation-weighted bidding; pools NOT implemented) | `internal_assign`, `score` in `src/lib.rs` | `cargo test -p bylaw -p mock-ft award_` |
 
 The `cargo test` filters above were run as part of the full suite (all pass). The sandbox command was not run.

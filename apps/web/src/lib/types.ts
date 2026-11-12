@@ -9,7 +9,7 @@ export type JobState =
 
 export interface Split { reviewer: number; producer: number; sales: number; treasury: number; seats: number }
 
-export interface CharterParams {
+export interface ByLawParams {
   version: number;
   text: string;
   text_hash: string;
@@ -22,7 +22,7 @@ export interface CharterParams {
   per_tx_cap: string; approval_threshold: string;
 }
 
-export interface CharterVersion {
+export interface ByLawVersion {
   version: number;
   text: string;
   text_hash: string;
@@ -33,7 +33,7 @@ export interface CharterVersion {
 
 export interface AppConfig {
   contract_id: string; dao_id: string; token_id: string; guardians: string[];
-  charter: { version: number; text_hash: string };
+  bylaw: { version: number; text_hash: string };
 }
 
 export interface Health { near_height: number; indexer_lag_s: number; agents_alive: string[]; llm_ok: boolean }

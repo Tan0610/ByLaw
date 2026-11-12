@@ -16,7 +16,7 @@ export const mockChain = {
     const a = args as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
     if (to === TOKEN && m === "ft_transfer_call") {
-      if (a.receiver_id !== CONTRACT) return fail("Mock supports ft_transfer_call to the Charter contract only.");
+      if (a.receiver_id !== CONTRACT) return fail("Mock supports ft_transfer_call to the ByLaw contract only.");
       let msg: { action?: string; target?: string } = {};
       try { msg = JSON.parse(String(a.msg)); } catch { return fail("msg is not valid JSON"); }
       if (msg.action === "post_job") {

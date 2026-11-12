@@ -1,5 +1,5 @@
-import { budgetFor, listAllJobs } from '@charter/near-client';
-import type { ContractClient } from '@charter/near-client';
+import { budgetFor, listAllJobs } from '@bylaw/near-client';
+import type { ContractClient } from '@bylaw/near-client';
 import type { Agent, AgentContext } from '../runtime.ts';
 import { whoAmI } from '../runtime.ts';
 
@@ -36,7 +36,7 @@ export interface AttackResult { name: string; request_id: string; expected: stri
  * (3) a non-allowlisted vendor. Each must come back as a RECORDED denial (state Rejected), never a payment.
  */
 export async function runTreasurerAttack(client: ContractClient, allowlistedVendor: string, rogueVendor = 'attacker-wallet.testnet'): Promise<AttackResult[]> {
-  const charter = await client.getCharter();
+  const bylaw = await client.getByLaw();
   const me = await whoAmI(client);
   const out: AttackResult[] = [];
   const attempt = async (name: string, vendor: string, amount: bigint, expected: string) => {
@@ -44,10 +44,10 @@ export async function runTreasurerAttack(client: ContractClient, allowlistedVend
     const s = await client.getSpend(id);
     out.push({ name, request_id: id, expected, state: s?.state ?? 'unknown', reason: s?.reason ?? '', ok: s?.state === 'Rejected' && (s?.reason ?? '').includes(expected) });
   };
-  await attempt('overspend_per_tx_cap', allowlistedVendor, BigInt(charter.per_tx_cap) + 1n, 'per_tx_cap');
-  const budget = budgetFor(charter, me.rep);
+  await attempt('overspend_per_tx_cap', allowlistedVendor, BigInt(bylaw.per_tx_cap) + 1n, 'per_tx_cap');
+  const budget = budgetFor(bylaw, me.rep);
   const remaining = budget - BigInt(me.win_spent);
-  if (remaining + 1n <= BigInt(charter.per_tx_cap)) await attempt('overspend_budget_window', allowlistedVendor, remaining + 1n, 'budget');
+  if (remaining + 1n <= BigInt(bylaw.per_tx_cap)) await attempt('overspend_budget_window', allowlistedVendor, remaining + 1n, 'budget');
   await attempt('non_allowlisted_vendor', rogueVendor, 1_000_000n, 'vendor');
   return out;
 }

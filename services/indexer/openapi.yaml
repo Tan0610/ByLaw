@@ -1,9 +1,9 @@
 openapi: 3.0.3
 info:
-  title: Charter Indexer
+  title: ByLaw Indexer
   version: 0.1.0
   description: >
-    REST + SSE over the charter contract (INTERFACES.md section 3). snake_case JSON, u64/u128 as decimal
+    REST + SSE over the bylaw contract (INTERFACES.md section 3). snake_case JSON, u64/u128 as decimal
     strings, hashes 0x + 64 hex. Errors are {"error":{"code","message"}}. Base URL default http://localhost:8788.
 servers:
   - url: http://localhost:8788
@@ -85,7 +85,7 @@ components:
       type: object
       required: [schema, target, facts, summary, model, attestation]
       properties:
-        schema: { type: string, enum: [charter.report.v1] }
+        schema: { type: string, enum: [bylaw.report.v1] }
         target: { type: string }
         facts: { type: object }
         summary: { type: string }
@@ -102,14 +102,14 @@ paths:
     get:
       summary: Deployment config
       responses:
-        '200': { description: '{contract_id, dao_id, token_id, guardians, charter:{version,text_hash}}' }
-  /charter:
+        '200': { description: '{contract_id, dao_id, token_id, guardians, bylaw:{version,text_hash}}' }
+  /bylaw:
     get:
-      summary: Current charter and params
+      summary: Current bylaw and params
       responses:
-        '200': { description: CharterParams }
+        '200': { description: ByLawParams }
         '503': { description: Not indexed yet, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
-  /charter/history:
+  /bylaw/history:
     get:
       summary: Versions seen, with text and line diff against the previous version
       responses:
@@ -187,7 +187,7 @@ paths:
         '404': { description: not found }
   /artifacts:
     post:
-      summary: (extra) Publish a charter.report.v1 artifact; server computes and returns the hash. Needs x-indexer-token if INDEXER_WRITE_TOKEN is set.
+      summary: (extra) Publish a bylaw.report.v1 artifact; server computes and returns the hash. Needs x-indexer-token if INDEXER_WRITE_TOKEN is set.
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Report' } } } }
       responses:
         '201': { description: '{hash}' }
@@ -213,6 +213,6 @@ paths:
         '200': { description: 'contract stats plus {solvency:{ok,accounted,expected}, jobs_by_state, spends}' }
   /stream:
     get:
-      summary: Server-sent events; each message is {type, id} (types job, agent, spend, seat, charter, stats, event, artifact, hello)
+      summary: Server-sent events; each message is {type, id} (types job, agent, spend, seat, bylaw, stats, event, artifact, hello)
       responses:
         '200': { description: text/event-stream }

@@ -1,4 +1,4 @@
-import type { Agent, Bid, CharterParams, Split } from './types.ts';
+import type { Agent, Bid, ByLawParams, Split } from './types.ts';
 
 export const ACC_SCALE = 10n ** 18n;
 
@@ -57,13 +57,13 @@ export function computeWaterfall(price: bigint, split: Split, totalSeatWeight: b
 }
 
 /** budget(agent) = min(max_budget, base_budget + per_rep_budget * rep / 100). (CONTRACT_SPEC 4.10) */
-export function budgetFor(p: CharterParams, rep: number): bigint {
+export function budgetFor(p: ByLawParams, rep: number): bigint {
   const b = BigInt(p.base_budget) + (BigInt(p.per_rep_budget) * BigInt(rep)) / 100n;
   const max = BigInt(p.max_budget);
   return b < max ? b : max;
 }
 
-export function maxBidFor(p: CharterParams, jobPrice: bigint | string): bigint {
+export function maxBidFor(p: ByLawParams, jobPrice: bigint | string): bigint {
   return (BigInt(jobPrice) * BigInt(p.max_bid_bps)) / 10000n;
 }
 

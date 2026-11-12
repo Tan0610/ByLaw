@@ -1,5 +1,5 @@
 {
-  "name": "@charter/web",
+  "name": "@bylaw/web",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -22,8 +22,8 @@
     "react-router-dom": "^7.9.0"
   },
   "devDependencies": {
-    "@charter/indexer": "*",
-    "@charter/near-client": "*",
+    "@bylaw/indexer": "*",
+    "@bylaw/near-client": "*",
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.0",

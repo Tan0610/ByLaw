@@ -3,12 +3,12 @@
 
 export const env = (k: string, fallback = ""): string => (process.env[k] ?? "").trim() || fallback;
 
-export interface Ids { dao: string; charter: string; token: string; proposer: string; network: string }
+export interface Ids { dao: string; bylaw: string; token: string; proposer: string; network: string }
 
 export function ids(): Ids {
   return {
     dao: env("DAO_ID", "<your-dao>.sputnikv2.testnet"),
-    charter: env("CHARTER_CONTRACT_ID", "charter.<you>.testnet"),
+    bylaw: env("BYLAW_CONTRACT_ID", "bylaw.<you>.testnet"),
     token: env("TOKEN_ID", "tusd.<you>.testnet"),
     proposer: env("PROPOSER", "<council-member>.testnet"),
     network: env("NEAR_NETWORK", "testnet"),
@@ -25,7 +25,7 @@ const q = (s: string) => `'${s.replace(/'/g, "'\\''")}'`;
 
 export interface FnCall { method: string; args: unknown; deposit?: string; gas?: string }
 
-/** Sputnik v2 `add_proposal` args for a FunctionCall on the Charter contract. */
+/** Sputnik v2 `add_proposal` args for a FunctionCall on the ByLaw contract. */
 export function proposal(description: string, receiver: string, calls: FnCall[]) {
   return {
     proposal: {
@@ -56,10 +56,10 @@ export function nearView(contract: string, method: string, args: unknown = {}, n
 
 /** Print an add_proposal command plus the vote command template. */
 export function printProposal(title: string, i: Ids, description: string, calls: FnCall[], bondNear = "0.1") {
-  const p = proposal(description, i.charter, calls);
+  const p = proposal(description, i.bylaw, calls);
   console.log(`\n## ${title}`);
   console.log("Decoded call(s):");
-  for (const c of calls) console.log(`  ${i.charter}.${c.method}(${JSON.stringify(c.args)})${c.deposit && c.deposit !== "0" ? ` deposit ${c.deposit} yocto` : ""}`);
+  for (const c of calls) console.log(`  ${i.bylaw}.${c.method}(${JSON.stringify(c.args)})${c.deposit && c.deposit !== "0" ? ` deposit ${c.deposit} yocto` : ""}`);
   console.log("Propose (any council member):");
   console.log("  " + nearCall({ contract: i.dao, method: "add_proposal", args: p, signer: i.proposer, depositNear: bondNear, network: i.network }));
   console.log("Then each voter (ID from get_last_proposal_id minus 1; `proposal` must repeat the kind):");

@@ -3,14 +3,14 @@ import { Link } from "react-router-dom";
 import { Empty, ErrorBox, Loading, NeedWallet, PageHead, StateBadge, Table, TxStatus, useTx, Account } from "../components/ui";
 import { JobSteps } from "../components/viz";
 import { fmtTime, fmtToken, parseToken } from "../lib/format";
-import { useCharter, useIds, useJobs } from "../lib/hooks";
+import { useByLaw, useIds, useJobs } from "../lib/hooks";
 import { ONE_YOCTO, GAS_300T } from "../lib/config";
 
 const ACCOUNT_RE = /^(([a-z\d]+[-_])*[a-z\d]+\.)*([a-z\d]+[-_])*[a-z\d]+$/;
 
 export default function JobsPage() {
   const jobs = useJobs();
-  const charter = useCharter();
+  const bylaw = useByLaw();
   const ids = useIds();
   const tx = useTx();
   const [target, setTarget] = useState("dex.demo.testnet");
@@ -24,9 +24,9 @@ export default function JobsPage() {
     if (t.length < 2 || t.length > 64 || !ACCOUNT_RE.test(t)) return setFormError("Enter a valid NEAR account id, for example dex.testnet.");
     let amount: string;
     try { amount = parseToken(price); } catch (err) { return setFormError((err as Error).message); }
-    const c = charter.data;
+    const c = bylaw.data;
     if (c && (BigInt(amount) < BigInt(c.min_price) || BigInt(amount) > BigInt(c.max_price)))
-      return setFormError(`The charter price band is ${fmtToken(c.min_price)} to ${fmtToken(c.max_price)} tUSD.`);
+      return setFormError(`The bylaw price band is ${fmtToken(c.min_price)} to ${fmtToken(c.max_price)} tUSD.`);
     void tx.run({
       receiverId: ids.tokenId, methodName: "ft_transfer_call", deposit: ONE_YOCTO, gas: GAS_300T,
       args: { receiver_id: ids.contractId, amount, msg: JSON.stringify({ action: "post_job", target: t }) },
@@ -47,7 +47,7 @@ export default function JobsPage() {
           <div>
             <label htmlFor="price">Price (tUSD)</label>
             <input id="price" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} />
-            {charter.data && <div className="hint">Band {fmtToken(charter.data.min_price, 0)} to {fmtToken(charter.data.max_price, 0)} tUSD</div>}
+            {bylaw.data && <div className="hint">Band {fmtToken(bylaw.data.min_price, 0)} to {fmtToken(bylaw.data.max_price, 0)} tUSD</div>}
           </div>
           <div style={{ alignSelf: "end" }}>
             <button className="primary" type="submit" disabled={!tx.accountId || tx.state.status === "pending"}>Pay and post job</button>

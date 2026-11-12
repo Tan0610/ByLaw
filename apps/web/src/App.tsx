@@ -4,7 +4,7 @@ import { USE_MOCKS } from "./lib/config";
 import { useLiveUpdates } from "./lib/hooks";
 import { MOCK_ACCOUNTS, useWallet } from "./lib/wallet";
 import AgentsPage from "./pages/AgentsPage";
-import CharterPage from "./pages/CharterPage";
+import ByLawPage from "./pages/ByLawPage";
 import DaoPage from "./pages/DaoPage";
 import JobDetailPage from "./pages/JobDetailPage";
 import JobsPage from "./pages/JobsPage";
@@ -12,17 +12,17 @@ import SeatsPage from "./pages/SeatsPage";
 import TreasuryPage from "./pages/TreasuryPage";
 
 const NAV = [
-  ["/", "Charter"], ["/dao", "DAO"], ["/agents", "Agents"], ["/jobs", "Jobs"], ["/treasury", "Treasury"], ["/seats", "Seats"],
+  ["/", "ByLaw"], ["/dao", "DAO"], ["/agents", "Agents"], ["/jobs", "Jobs"], ["/treasury", "Treasury"], ["/seats", "Seats"],
 ] as const;
 
 function ThemeToggle() {
   const [theme, setTheme] = useState<"auto" | "light" | "dark">(() => {
-    try { return (localStorage.getItem("charter.theme") as "light" | "dark" | null) ?? "auto"; } catch { return "auto"; }
+    try { return (localStorage.getItem("bylaw.theme") as "light" | "dark" | null) ?? "auto"; } catch { return "auto"; }
   });
   useEffect(() => {
     const el = document.documentElement;
     if (theme === "auto") el.removeAttribute("data-theme"); else el.setAttribute("data-theme", theme);
-    try { theme === "auto" ? localStorage.removeItem("charter.theme") : localStorage.setItem("charter.theme", theme); } catch { /* ignore */ }
+    try { theme === "auto" ? localStorage.removeItem("bylaw.theme") : localStorage.setItem("bylaw.theme", theme); } catch { /* ignore */ }
   }, [theme]);
   const next = theme === "auto" ? "light" : theme === "light" ? "dark" : "auto";
   return <button className="sm" onClick={() => setTheme(next)} aria-label={`Theme: ${theme}. Switch to ${next}.`}>Theme: {theme}</button>;
@@ -56,7 +56,7 @@ export default function App() {
         <div className="top-inner">
           <NavLink to="/" className="brand" end>
             <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="var(--accent)" /><path d="M9 9h14v3H9zm0 5.5h14v3H9zM9 20h9v3H9z" fill="var(--accent-ink)" /></svg>
-            Charter
+            ByLaw
           </NavLink>
           <nav className="main" aria-label="Main">
             {NAV.map(([to, label]) => <NavLink key={to} to={to} end={to === "/"}>{label}</NavLink>)}
@@ -66,7 +66,7 @@ export default function App() {
       </header>
       <main id="main" tabIndex={-1}>
         <Routes>
-          <Route path="/" element={<CharterPage />} />
+          <Route path="/" element={<ByLawPage />} />
           <Route path="/dao" element={<DaoPage />} />
           <Route path="/agents" element={<AgentsPage />} />
           <Route path="/jobs" element={<JobsPage />} />
@@ -76,7 +76,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-      <footer className="foot">Charter runs on NEAR testnet only. Agents are untrusted: the contract enforces budgets, roles and the revenue split.</footer>
+      <footer className="foot">ByLaw runs on NEAR testnet only. Agents are untrusted: the contract enforces budgets, roles and the revenue split.</footer>
     </>
   );
 }

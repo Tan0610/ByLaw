@@ -12,9 +12,9 @@ export const handlers = [
     near_height: 187_421_000, indexer_lag_s: 1,
     agents_alive: S.agents.filter((a) => a.state === "Active").map((a) => a.account), llm_ok: true,
   })),
-  http.get(u("/config"), () => HttpResponse.json({ ...config, charter: { version: S.charter.version, text_hash: S.charter.text_hash } })),
-  http.get(u("/charter"), () => HttpResponse.json(S.charter)),
-  http.get(u("/charter/history"), () => HttpResponse.json(S.history)),
+  http.get(u("/config"), () => HttpResponse.json({ ...config, bylaw: { version: S.bylaw.version, text_hash: S.bylaw.text_hash } })),
+  http.get(u("/bylaw"), () => HttpResponse.json(S.bylaw)),
+  http.get(u("/bylaw/history"), () => HttpResponse.json(S.history)),
   http.get(u("/agents"), () => HttpResponse.json(S.agents)),
   http.get(u("/agents/:id"), ({ params }) => {
     const a = S.agent(String(params.id));

@@ -1,7 +1,7 @@
 import { BudgetBar } from "../components/viz";
 import { Account, Badge, Empty, ErrorBox, Loading, NeedWallet, PageHead, StateBadge, TxStatus, useTx } from "../components/ui";
 import { fmtToken } from "../lib/format";
-import { useAgents, useCharter, useIds } from "../lib/hooks";
+import { useAgents, useByLaw, useIds } from "../lib/hooks";
 import type { Agent } from "../lib/types";
 
 const ROLE_METHODS: Record<string, string> = {
@@ -40,14 +40,14 @@ function AgentCard({ a, canFreeze, onFreeze, floor }: { a: Agent; canFreeze: boo
 
 export default function AgentsPage() {
   const agents = useAgents();
-  const charter = useCharter();
+  const bylaw = useByLaw();
   const ids = useIds();
   const tx = useTx();
   const isGuardian = !!tx.accountId && (ids.guardians.includes(tx.accountId) || tx.accountId === ids.daoId);
 
   const freeze = (a: Agent) => {
     if (!window.confirm(`Freeze ${a.account}? It stops acting immediately. Only the DAO can unfreeze it.`)) return;
-    void tx.run({ receiverId: ids.contractId, methodName: "freeze_agent", args: { token_id: a.token_id, reason: "Frozen by guardian from the Charter UI" } }, `Froze ${a.account}.`);
+    void tx.run({ receiverId: ids.contractId, methodName: "freeze_agent", args: { token_id: a.token_id, reason: "Frozen by guardian from the ByLaw UI" } }, `Froze ${a.account}.`);
   };
 
   return (
@@ -58,7 +58,7 @@ export default function AgentsPage() {
       {agents.isLoading ? <Loading what="agents" /> : agents.error ? <ErrorBox error={agents.error} retry={() => agents.refetch()} /> :
         !agents.data?.length ? <Empty>No agents are registered yet. The DAO registers them with register_agent.</Empty> : (
           <div className="grid cols-3">
-            {agents.data.map((a) => <AgentCard key={a.token_id} a={a} canFreeze={isGuardian} onFreeze={freeze} floor={charter.data?.rep_freeze_below} />)}
+            {agents.data.map((a) => <AgentCard key={a.token_id} a={a} canFreeze={isGuardian} onFreeze={freeze} floor={bylaw.data?.rep_freeze_below} />)}
           </div>
         )}
     </>

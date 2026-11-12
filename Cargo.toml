@@ -1,5 +1,5 @@
 [workspace]
-members = ["contracts/charter", "contracts/mock-ft"]
+members = ["contracts/bylaw", "contracts/mock-ft"]
 resolver = "2"
 
 [profile.release]

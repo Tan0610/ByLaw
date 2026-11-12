@@ -1,4 +1,4 @@
-import { listAllJobs } from '@charter/near-client';
+import { listAllJobs } from '@bylaw/near-client';
 import type { Agent, AgentContext } from '../runtime.ts';
 
 /** Sales: accept_job on Posted jobs, award_job after the bid window, expire_job on stale jobs. */

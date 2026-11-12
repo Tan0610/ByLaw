@@ -1,9 +1,9 @@
 [package]
-name = "charter"
+name = "bylaw"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-description = "Charter: an executable company constitution (agents, jobs, escrow, waterfall) on NEAR"
+description = "ByLaw: an executable company constitution (agents, jobs, escrow, waterfall) on NEAR"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

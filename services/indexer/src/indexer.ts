@@ -1,8 +1,8 @@
 import { EventEmitter } from 'node:events';
 import {
   computeWaterfall, scoreBid, listAllJobs,
-} from '@charter/near-client';
-import type { Agent, CharterParams, ContractClient, Job, Seat, SpendRequest } from '@charter/near-client';
+} from '@bylaw/near-client';
+import type { Agent, ByLawParams, ContractClient, Job, Seat, SpendRequest } from '@bylaw/near-client';
 import { Db } from './db.ts';
 import type { EventRow } from './db.ts';
 import { lineDiff } from './textdiff.ts';
@@ -64,14 +64,14 @@ export class Indexer {
     let changed = 0;
     try {
       const now = await this.nowNs();
-      const [height, charter, agents, jobs, spends, seats] = await Promise.all([
-        this.client.blockHeight(), this.client.getCharter(), this.client.listAgents(), listAllJobs(this.client),
+      const [height, bylaw, agents, jobs, spends, seats] = await Promise.all([
+        this.client.blockHeight(), this.client.getByLaw(), this.client.listAgents(), listAllJobs(this.client),
         this.client.listSpends(), this.client.listSeats(),
       ]);
       const repById = new Map(agents.map((a) => [a.token_id, a.rep]));
-      changed += this.diffCharter(charter, now);
+      changed += this.diffByLaw(bylaw, now);
       changed += await this.diffAgents(agents, now);
-      changed += this.diffJobs(jobs, repById, charter, seats, now);
+      changed += this.diffJobs(jobs, repById, bylaw, seats, now);
       changed += this.diffSpends(spends, now);
       changed += await this.diffSeats(seats, now);
       this.db.setCursor('height', String(height));
@@ -87,13 +87,13 @@ export class Indexer {
     return { changed };
   }
 
-  private diffCharter(c: CharterParams, now: string): number {
-    const known = this.db.charters();
+  private diffByLaw(c: ByLawParams, now: string): number {
+    const known = this.db.bylaws();
     if (known.some((k) => k.version === c.version && JSON.parse(k.json).text_hash === c.text_hash)) return 0;
-    const prev = known.length ? (JSON.parse(known[known.length - 1].json) as CharterParams) : null;
-    this.db.putCharter(c.version, JSON.stringify(c), now);
-    if (prev) this.event('charter_updated', String(c.version), null, now, { version: c.version, old_hash: prev.text_hash, new_hash: c.text_hash }, `charter:${c.version}`);
-    this.ping('charter', String(c.version));
+    const prev = known.length ? (JSON.parse(known[known.length - 1].json) as ByLawParams) : null;
+    this.db.putByLaw(c.version, JSON.stringify(c), now);
+    if (prev) this.event('bylaw_updated', String(c.version), null, now, { version: c.version, old_hash: prev.text_hash, new_hash: c.text_hash }, `bylaw:${c.version}`);
+    this.ping('bylaw', String(c.version));
     return 1;
   }
 
@@ -122,7 +122,7 @@ export class Indexer {
     return n;
   }
 
-  private diffJobs(jobs: Job[], repById: Map<string, number>, charter: CharterParams, seats: Seat[], now: string): number {
+  private diffJobs(jobs: Job[], repById: Map<string, number>, bylaw: ByLawParams, seats: Seat[], now: string): number {
     let n = 0;
     const totalWeight = seats.reduce((s, x) => s + BigInt(x.weight), 0n);
     for (const j of jobs) {
@@ -136,13 +136,13 @@ export class Indexer {
       }
       this.db.putJob(j.id, j.state, j.customer, json, JSON.stringify(meta));
       this.ping('job', j.id);
-      this.jobMilestones(j, charter, totalWeight, now);
+      this.jobMilestones(j, bylaw, totalWeight, now);
     }
     return n;
   }
 
   /** Idempotent, order-stable event derivation from a job snapshot. */
-  private jobMilestones(j: Job, charter: CharterParams, totalWeight: bigint, now: string): void {
+  private jobMilestones(j: Job, bylaw: ByLawParams, totalWeight: bigint, now: string): void {
     const k = (s: string) => `job:${j.id}:${s}`;
     const ev = (type: string, ts: string, data: Record<string, unknown>, key: string) =>
       this.event(type, j.id, j.id, ts, { job_id: j.id, ...data }, k(key));
@@ -156,11 +156,11 @@ export class Indexer {
     if (j.deliverable_hash) ev('work_submitted', now, { deliverable_hash: j.deliverable_hash, uri: j.uri, attestation: j.attestation }, `submitted:${j.deliverable_hash}`);
     if (j.state === 'Settled' || j.state === 'Accepted') {
       ev('work_reviewed', now, { approve: true, reviewer: j.reviewer }, 'reviewed:approve');
-      const w = computeWaterfall(BigInt(j.price), charter.split, totalWeight);
+      const w = computeWaterfall(BigInt(j.price), bylaw.split, totalWeight);
       ev('job_settled', now, {
         price: j.price,
         credits: { reviewer: String(w.reviewer), producer: String(w.producer), sales: String(w.sales), seats: String(w.seats), treasury: String(w.treasury) },
-        credits_derived_from_charter_version: charter.version,
+        credits_derived_from_bylaw_version: bylaw.version,
       }, 'settled');
     }
     if (j.state === 'Refunded') ev('job_refunded', now, {}, 'refunded');
@@ -241,14 +241,14 @@ export class Indexer {
   }
 
   private earningsFor(a: Agent): { total: string; by_role: Record<string, string>; settled_jobs: number } {
-    const charter = this.currentCharter();
+    const bylaw = this.currentByLaw();
     const totalWeight = this.db.allJson<SeatRow>('seats').reduce((s, x) => s + BigInt(x.weight), 0n);
     const by: Record<string, bigint> = { producer: 0n, reviewer: 0n, sales: 0n };
     let cnt = 0;
-    if (charter) {
+    if (bylaw) {
       for (const r of this.db.listJobs('Settled')) {
         const j = JSON.parse(r.json) as Job;
-        const w = computeWaterfall(BigInt(j.price), charter.split, totalWeight);
+        const w = computeWaterfall(BigInt(j.price), bylaw.split, totalWeight);
         let hit = false;
         if (j.winner === a.token_id) { by.producer += w.producer; hit = true; }
         if (j.reviewer === a.token_id) { by.reviewer += w.reviewer; hit = true; }
@@ -264,15 +264,15 @@ export class Indexer {
     };
   }
 
-  currentCharter(): CharterParams | null {
-    const c = this.db.charters();
-    return c.length ? (JSON.parse(c[c.length - 1].json) as CharterParams) : null;
+  currentByLaw(): ByLawParams | null {
+    const c = this.db.bylaws();
+    return c.length ? (JSON.parse(c[c.length - 1].json) as ByLawParams) : null;
   }
 
   jobView(row: { json: string; meta: string }) {
     const j = JSON.parse(row.json) as Job;
     const meta = JSON.parse(row.meta) as JobMeta;
-    const charter = this.currentCharter();
+    const bylaw = this.currentByLaw();
     const agents = new Map(this.db.allJson<AgentRow>('agents').map((a) => [a.token_id, a]));
     const bids = j.bids.map((b) => ({
       agent: b.agent, agent_account: agents.get(b.agent)?.account ?? null, price: b.price, ts_ns: b.ts_ns, ts_iso: nsToIso(b.ts_ns),
@@ -280,8 +280,8 @@ export class Indexer {
     }));
     const totalWeight = this.db.allJson<SeatRow>('seats').reduce((s, x) => s + BigInt(x.weight), 0n);
     let waterfall: Record<string, string> | null = null;
-    if (charter && (j.state === 'Settled' || j.state === 'Accepted')) {
-      const w = computeWaterfall(BigInt(j.price), charter.split, totalWeight);
+    if (bylaw && (j.state === 'Settled' || j.state === 'Accepted')) {
+      const w = computeWaterfall(BigInt(j.price), bylaw.split, totalWeight);
       waterfall = { reviewer: String(w.reviewer), producer: String(w.producer), sales: String(w.sales), seats: String(w.seats), treasury: String(w.treasury) };
     }
     return {
@@ -300,8 +300,8 @@ export class Indexer {
     return this.db.events(jobId).map((e) => ({ seq: e.seq, type: e.type, ts_ns: e.ts_ns, ts_iso: nsToIso(e.ts_ns), data: e.data }));
   }
 
-  charterHistory() {
-    const rows = this.db.charters().map((r) => ({ ...(JSON.parse(r.json) as CharterParams), seen_ns: r.seen_ns }));
+  bylawHistory() {
+    const rows = this.db.bylaws().map((r) => ({ ...(JSON.parse(r.json) as ByLawParams), seen_ns: r.seen_ns }));
     return rows.map((c, i) => ({
       version: c.version, text_hash: c.text_hash, text: c.text, params: stripText(c), first_seen_iso: nsToIso(c.seen_ns),
       diff: i === 0 ? [] : lineDiff(rows[i - 1].text, c.text),
@@ -338,7 +338,7 @@ export class Indexer {
   }
 }
 
-function stripText(c: CharterParams): Omit<CharterParams, 'text'> {
+function stripText(c: ByLawParams): Omit<ByLawParams, 'text'> {
   const { text: _t, ...rest } = c;
   return rest;
 }

@@ -2,7 +2,7 @@ import { sha256Hex } from './canonical.ts';
 import type { ContractClient } from './client.ts';
 import { ACC_SCALE, budgetFor, computeWaterfall, maxBidFor, pickReviewer, pickWinner, validateSplit } from './rules.ts';
 import type {
-  Agent, Bid, CharterParams, ContractEvent, Job, JobListOpts, JobState, Kind, Seat, SpendRequest, Stats,
+  Agent, Bid, ByLawParams, ContractEvent, Job, JobListOpts, JobState, Kind, Seat, SpendRequest, Stats,
 } from './types.ts';
 
 export class ContractError extends Error {
@@ -21,8 +21,8 @@ export class ManualClock {
 }
 
 const SEC = 1_000_000_000n;
-export function defaultParams(): CharterParams {
-  const text = 'Charter v1: agents act only inside budgets; a different owner reviews every deliverable; the DAO may override.';
+export function defaultParams(): ByLawParams {
+  const text = 'ByLaw v1: agents act only inside budgets; a different owner reviews every deliverable; the DAO may override.';
   return {
     version: 1, text, text_hash: sha256Hex(text),
     min_price: '10000000', max_price: '1000000000',
@@ -37,23 +37,23 @@ export function defaultParams(): CharterParams {
 
 export interface FakeOptions {
   clock?: () => bigint;
-  params?: Partial<CharterParams>;
+  params?: Partial<ByLawParams>;
   guardians?: string[];
 }
 
 const POSTED_MAX_AGE_NS = 24n * 3600n * SEC;
 
 /**
- * In-memory simulation of the charter contract rules (CONTRACT_SPEC 4). Faithful for the job state
+ * In-memory simulation of the bylaw contract rules (CONTRACT_SPEC 4). Faithful for the job state
  * machine, bids/scoring, waterfall, budgets/reputation, spends (denials recorded, never panicking),
  * seats, claims and the solvency invariant. Panics throw ContractError. Pools are out of scope (T3).
  */
 export class FakeContract {
-  readonly contractId = 'charter.fake.testnet';
+  readonly contractId = 'bylaw.fake.testnet';
   readonly tokenId = 'tusd.fake.testnet';
   readonly ownerId = 'dao.fake.testnet';
   readonly events: ContractEvent[] = [];
-  params: CharterParams;
+  params: ByLawParams;
   guardians: string[];
   paused = false;
   private clock: () => bigint;
@@ -74,7 +74,7 @@ export class FakeContract {
   private acc = 0n;
   private totalIn = 0n;
   private totalOut = 0n;
-  private history: CharterParams[] = [];
+  private history: ByLawParams[] = [];
 
   constructor(opts: FakeOptions = {}) {
     this.clock = opts.clock ?? (() => BigInt(Date.now()) * 1_000_000n);
@@ -85,7 +85,7 @@ export class FakeContract {
 
   // ---------- plumbing ----------
   private emit(event: string, data: Record<string, unknown>): void {
-    this.events.push({ standard: 'charter', version: '1.0.0', event, data: [data] });
+    this.events.push({ standard: 'bylaw', version: '1.0.0', event, data: [data] });
   }
   private tick(): void { this.height += 1; }
   private now(): bigint { return this.clock(); }
@@ -145,8 +145,8 @@ export class FakeContract {
     this.tick();
     return structuredClone(a);
   }
-  setCharter(next: Partial<CharterParams>): CharterParams {
-    const merged: CharterParams = { ...this.params, ...next };
+  setByLaw(next: Partial<ByLawParams>): ByLawParams {
+    const merged: ByLawParams = { ...this.params, ...next };
     if (next.text !== undefined) merged.text_hash = sha256Hex(next.text);
     req(validateSplit(merged.split), 'split must sum to 10000');
     req(merged.text.length <= 8192, 'text too long');
@@ -154,7 +154,7 @@ export class FakeContract {
     merged.version = this.params.version + 1;
     this.params = merged;
     this.history.push(structuredClone(merged));
-    this.emit('charter_updated', { version: merged.version, old_hash, new_hash: merged.text_hash });
+    this.emit('bylaw_updated', { version: merged.version, old_hash, new_hash: merged.text_hash });
     this.tick();
     return structuredClone(merged);
   }
@@ -219,7 +219,7 @@ export class FakeContract {
     if (approve) this.approve(j); else this.reject(j);
     this.tick();
   }
-  charterHistory(): CharterParams[] { return structuredClone(this.history); }
+  bylawHistory(): ByLawParams[] { return structuredClone(this.history); }
 
   // ---------- change methods (caller = predecessor) ----------
   private doFreeze(by: string, tokenId: string, reason: string): void {
@@ -464,7 +464,7 @@ export class FakeContract {
       accountId: account,
       nowNs: async () => f.now(),
       blockHeight: async () => f.height,
-      getCharter: async () => structuredClone(f.params),
+      getByLaw: async () => structuredClone(f.params),
       getGuardians: async () => [...f.guardians],
       getAgent: async (id) => structuredClone(f.agents.get(id) ?? null),
       listAgents: async () => structuredClone([...f.agents.values()]),

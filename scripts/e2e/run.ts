@@ -1,17 +1,17 @@
 // End-to-end demo run.
 //
 //   npm run e2e:mock -w scripts          full demo on Lane B's in-memory FakeContract + the real indexer (no network)
-//   npm run e2e -w scripts -- --check    read-only testnet check of a deployed contract (needs CHARTER_CONTRACT_ID etc.)
+//   npm run e2e -w scripts -- --check    read-only testnet check of a deployed contract (needs BYLAW_CONTRACT_ID etc.)
 //
-// --mock drives the real packages: @charter/near-client (FakeContract, ManualClock, seedDemoWorld),
-// @charter/indexer (createIndexerApp; REST is queried through Fastify inject) and, when it exports them,
-// @charter/agents (SalesAgent, AnalystAgent, ReviewerAgent, TreasurerAgent). If the agents package has no
+// --mock drives the real packages: @bylaw/near-client (FakeContract, ManualClock, seedDemoWorld),
+// @bylaw/indexer (createIndexerApp; REST is queried through Fastify inject) and, when it exports them,
+// @bylaw/agents (SalesAgent, AnalystAgent, ReviewerAgent, TreasurerAgent). If the agents package has no
 // public index yet, the same role calls are scripted here and the transcript says so.
 // Nothing is signed or sent to any network in either mode.
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { DEMO_ACCOUNTS, FakeContract, ManualClock, NearContractClient, artifactHash, seedDemoWorld } from "@charter/near-client";
-import type { ContractClient } from "@charter/near-client";
-import { createIndexerApp } from "@charter/indexer";
+import { DEMO_ACCOUNTS, FakeContract, ManualClock, NearContractClient, artifactHash, seedDemoWorld } from "@bylaw/near-client";
+import type { ContractClient } from "@bylaw/near-client";
+import { createIndexerApp } from "@bylaw/indexer";
 
 const argv = process.argv.slice(2);
 const MOCK = argv.includes("--mock");
@@ -34,12 +34,12 @@ const tusd = (raw: string | bigint) => {
 
 // ---------- --check: read-only testnet ----------
 async function readOnlyCheck() {
-  const contractId = process.env.CHARTER_CONTRACT_ID;
+  const contractId = process.env.BYLAW_CONTRACT_ID;
   if (!contractId) {
     console.log([
       "Testnet e2e is human-run. This script never signs. Two options:",
       "  1. Read-only check of a deployed contract:",
-      "       CHARTER_CONTRACT_ID=charter.<you>.testnet TOKEN_ID=tusd.<you>.testnet npm run e2e -w scripts -- --check",
+      "       BYLAW_CONTRACT_ID=bylaw.<you>.testnet TOKEN_ID=tusd.<you>.testnet npm run e2e -w scripts -- --check",
       "  2. Full run: follow docs/demo/TESTNET_RUNBOOK.md (deploy, DAO bootstrap, agents, then the web app).",
       "For an offline run of the whole story: npm run e2e:mock -w scripts",
     ].join("\n"));
@@ -48,8 +48,8 @@ async function readOnlyCheck() {
   const rpcUrl = process.env.NEAR_RPC_URL || "https://rpc.testnet.near.org";
   const c = new NearContractClient({ rpcUrl, contractId, tokenId: process.env.TOKEN_ID ?? "" });
   step(`Read-only check of ${contractId} via ${rpcUrl}`);
-  const charter = await c.getCharter();
-  info(`charter v${charter.version} text_hash ${charter.text_hash}`);
+  const bylaw = await c.getByLaw();
+  info(`bylaw v${bylaw.version} text_hash ${bylaw.text_hash}`);
   const agents = await c.listAgents();
   agents.forEach((a) => info(`agent #${a.token_id} ${a.kind} ${a.account} state=${a.state} rep=${a.rep} owner=${a.owner}`));
   const jobs = await c.listJobs({ from: 0, limit: 50 });
@@ -68,7 +68,7 @@ type Tick = () => Promise<void>;
 
 async function loadAgentsPackage(): Promise<any | null> {
   try {
-    const m: any = await import("@charter/agents");
+    const m: any = await import("@bylaw/agents");
     const need = ["SalesAgent", "AnalystAgent", "ReviewerAgent", "TreasurerAgent", "StepLedger"];
     return need.every((k) => typeof m[k] === "function") ? m : null;
   } catch {
@@ -107,12 +107,12 @@ async function mockRun() {
     async get(h: string) { try { return await rest(`/artifacts/${h}`); } catch { return null; } },
   };
 
-  out("Charter e2e (mock): FakeContract from @charter/near-client + real @charter/indexer. No network, nothing signed.");
+  out("ByLaw e2e (mock): FakeContract from @bylaw/near-client + real @bylaw/indexer. No network, nothing signed.");
   const agentsPkg = await loadAgentsPackage();
   let ticks: { sales: Tick; analysts: Tick; reviewer: Tick; treasurer: Tick };
 
   if (agentsPkg) {
-    out("Agents: real role loops from @charter/agents.");
+    out("Agents: real role loops from @bylaw/agents.");
     const g = agentsPkg;
     const log = g.silentLogger ?? { info() {}, warn() {}, error() {}, debug() {}, child() { return this; } };
     const facts = new g.CannedFactsProvider();
@@ -128,7 +128,7 @@ async function mockRun() {
       reviewer: () => reviewer.tick(), treasurer: () => treasurer.tick(),
     };
   } else {
-    out("Agents: @charter/agents has no public index yet, so the role calls below are scripted against the same client API.");
+    out("Agents: @bylaw/agents has no public index yet, so the role calls below are scripted against the same client API.");
     const facts = { code_hash: "scripted", storage_usage: 1000, balance: "0", full_access_keys: 0, function_call_keys: 1, upgradeable: false, fetched_at_block: 1 };
     ticks = {
       sales: async () => {
@@ -145,7 +145,7 @@ async function mockRun() {
           for (const j of await c.listJobs({})) {
             if (j.state === "Open" && !j.bids.some((b) => b.agent === me.token_id)) await c.placeBid(j.id, ((BigInt(j.price) * bps) / 10000n).toString());
             if (j.state === "Awarded" && j.winner === me.token_id) {
-              const hash = await store.put({ schema: "charter.report.v1", target: j.target, facts, summary: "scripted", model: "none", attestation: null });
+              const hash = await store.put({ schema: "bylaw.report.v1", target: j.target, facts, summary: "scripted", model: "none", attestation: null });
               await c.submitWork(j.id, hash, `indexer:/artifacts/${hash}`, null);
             }
           }
@@ -165,11 +165,11 @@ async function mockRun() {
 
   // 1. world
   await sync();
-  step("The company: charter, DAO, agents, seats");
+  step("The company: bylaw, DAO, agents, seats");
   const cfg = await rest("/config");
   info(`contract ${cfg.contract_id} owned by DAO ${cfg.dao_id}; token ${cfg.token_id}; guardians ${cfg.guardians.join(", ")}`);
-  const ch0 = await rest("/charter");
-  info(`charter v${ch0.version}: "${ch0.text}"`);
+  const ch0 = await rest("/bylaw");
+  info(`bylaw v${ch0.version}: "${ch0.text}"`);
   for (const a of await rest("/agents")) info(`agent #${a.token_id} ${a.kind.padEnd(9)} ${a.account}  owner=${a.owner} rep=${a.rep} budget=${tusd(a.budget)}`);
   for (const s of await rest("/seats")) info(`seat #${s.token_id} owner=${s.owner} weight=${s.weight}`);
   check((await rest("/agents")).length === 5, "five agents registered (each an NFT)");
@@ -257,7 +257,7 @@ async function mockRun() {
   // 11. attacks
   step("Attack: overspend and a non-allowlisted vendor (recorded as rejected, never paid)");
   const t = as(A.treasurer);
-  const ch = await t.getCharter();
+  const ch = await t.getByLaw();
   const overCap = await t.requestSpend(A.vendor, (BigInt(ch.per_tx_cap) + 1n).toString(), null, "attack: above per-tx cap");
   const me = (await t.listAgents()).find((a) => a.account === A.treasurer)!;
   const budget = BigInt(await t.budgetOf(me.token_id));
@@ -284,22 +284,22 @@ async function mockRun() {
   info(`frozen treasurer tries to spend: ${afterFreeze?.state} (${afterFreeze?.reason})`);
   check(afterFreeze?.state === "Rejected", "frozen agent's spend is rejected");
 
-  // 13. charter amendment through the DAO
-  step("DAO amends the charter (Sputnik FunctionCall proposal -> set_charter)");
+  // 13. bylaw amendment through the DAO
+  step("DAO amends the bylaw (Sputnik FunctionCall proposal -> set_bylaw)");
   const newText = `${ch.text}\nAmendment: spends of 3 tUSD or more need DAO approval.`;
   const proposal = {
     description: "Lower the approval threshold to 3 tUSD",
-    kind: { FunctionCall: { receiver_id: fake.contractId, actions: [{ method_name: "set_charter", args: "<base64 of {params:{...new CharterParams}}>", deposit: "0", gas: "150000000000000" }] } },
+    kind: { FunctionCall: { receiver_id: fake.contractId, actions: [{ method_name: "set_bylaw", args: "<base64 of {params:{...new ByLawParams}}>", deposit: "0", gas: "150000000000000" }] } },
   };
   info(`proposal: ${JSON.stringify(proposal)}`);
-  info("council votes 2 of 3 approve -> the DAO calls set_charter (simulated here as the DAO owner of the fake)");
-  fake.setCharter({ text: newText, approval_threshold: "3000000" });
+  info("council votes 2 of 3 approve -> the DAO calls set_bylaw (simulated here as the DAO owner of the fake)");
+  fake.setByLaw({ text: newText, approval_threshold: "3000000" });
   await sync();
-  const hist = await rest("/charter/history");
+  const hist = await rest("/bylaw/history");
   const last = hist[hist.length - 1];
-  info(`charter v${last.version}, text hash ${last.text_hash}`);
+  info(`bylaw v${last.version}, text hash ${last.text_hash}`);
   info(`diff: ${JSON.stringify(last.diff).slice(0, 160)}`);
-  check(hist.length >= 2 && last.version === ch.version + 1, "charter version bumped with history and diff");
+  check(hist.length >= 2 && last.version === ch.version + 1, "bylaw version bumped with history and diff");
 
   // 14. invariants
   step("Invariants");

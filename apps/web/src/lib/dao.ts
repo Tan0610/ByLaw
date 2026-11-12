@@ -8,7 +8,7 @@ export async function rpcView<T>(contractId: string, method: string, args: objec
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
-      jsonrpc: "2.0", id: "charter-web", method: "query",
+      jsonrpc: "2.0", id: "bylaw-web", method: "query",
       params: {
         request_type: "call_function", finality: "optimistic", account_id: contractId,
         method_name: method, args_base64: toBase64(JSON.stringify(args)),
@@ -60,7 +60,7 @@ export function voteTx(daoId: string, p: DaoProposal, action: "VoteApprove" | "V
   return { receiverId: daoId, methodName: "act_proposal", args: { id: p.id, action, proposal: p.kind }, gas: GAS_100T };
 }
 
-export function proposeTx(daoId: string, description: string, t: ProposalTemplate, charterId: string): TxRequest {
+export function proposeTx(daoId: string, description: string, t: ProposalTemplate, bylawId: string): TxRequest {
   return {
     receiverId: daoId, methodName: "add_proposal", deposit: PROPOSAL_BOND, gas: GAS_100T,
     args: {
@@ -68,7 +68,7 @@ export function proposeTx(daoId: string, description: string, t: ProposalTemplat
         description,
         kind: {
           FunctionCall: {
-            receiver_id: charterId,
+            receiver_id: bylawId,
             actions: [{
               method_name: t.method,
               args: toBase64(JSON.stringify(t.args)),
@@ -85,9 +85,9 @@ export function proposeTx(daoId: string, description: string, t: ProposalTemplat
 // Built-in fallbacks so the page works before Lane A's templates exist or are readable.
 const FALLBACK: ProposalTemplate[] = [
   {
-    name: "Amend the charter", method: "set_charter",
-    description: "Replace charter text and parameters. The contract bumps the version and emits old and new hashes.",
-    args: { params: { text: "Edit me: the new charter text.", note: "Replace this object with the full CharterParams (see contracts/charter/ABI.md)." } },
+    name: "Amend the bylaw", method: "set_bylaw",
+    description: "Replace bylaw text and parameters. The contract bumps the version and emits old and new hashes.",
+    args: { params: { text: "Edit me: the new bylaw text.", note: "Replace this object with the full ByLawParams (see contracts/bylaw/ABI.md)." } },
   },
   { name: "Allow a vendor", method: "set_vendor", description: "Add a vendor to the procurement allowlist.", args: { vendor: "data-vendor.demo.testnet", allowed: true } },
   { name: "Approve a pending spend", method: "approve_spend", description: "Approve a spend above the approval threshold.", args: { id: "3" } },
@@ -95,7 +95,7 @@ const FALLBACK: ProposalTemplate[] = [
   { name: "Mint a seat", method: "mint_seat", description: "Mint a revenue-weighted, transferable seat NFT.", args: { owner: "new-member.demo.testnet", weight: 10 } },
 ];
 
-const modules = import.meta.glob("../../../../contracts/charter/dao-proposals/*.json", { eager: true, import: "default" }) as Record<string, unknown>;
+const modules = import.meta.glob("../../../../contracts/bylaw/dao-proposals/*.json", { eager: true, import: "default" }) as Record<string, unknown>;
 
 /** Accepts Sputnik-style proposals or a plain `{method, args}` and normalises both. */
 export function normalizeTemplate(file: string, raw: unknown): ProposalTemplate | null {
@@ -127,4 +127,4 @@ export function loadTemplates(): { templates: ProposalTemplate[]; source: "repo"
   return found.length ? { templates: found, source: "repo" } : { templates: FALLBACK, source: "fallback" };
 }
 
-export const defaultCharterId = ENV_CONTRACT_ID;
+export const defaultByLawId = ENV_CONTRACT_ID;

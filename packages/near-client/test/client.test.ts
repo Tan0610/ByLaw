@@ -251,10 +251,10 @@ test('repeated rejections auto-freeze below rep_freeze_below (C10)', async () =>
   assert.equal(a.state, 'Frozen');
 });
 
-test('charter change: version increments, split validated, history kept', async () => {
+test('bylaw change: version increments, split validated, history kept', async () => {
   const { f } = world();
-  const v = f.setCharter({ text: 'Charter v2' });
+  const v = f.setByLaw({ text: 'ByLaw v2' });
   assert.equal(v.version, 2);
-  assert.throws(() => f.setCharter({ split: { reviewer: 1, producer: 1, sales: 1, seats: 1, treasury: 1 } }), /split/);
-  assert.equal(f.charterHistory().length, 2);
+  assert.throws(() => f.setByLaw({ split: { reviewer: 1, producer: 1, sales: 1, seats: 1, treasury: 1 } }), /split/);
+  assert.equal(f.bylawHistory().length, 2);
 });
