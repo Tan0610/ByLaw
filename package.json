@@ -1,0 +1,24 @@
+{
+  "name": "charter",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "workspaces": ["services/*", "packages/*", "apps/*", "scripts"],
+  "engines": { "node": ">=20.12" },
+  "scripts": {
+    "dev:indexer": "npm run dev -w @charter/indexer",
+    "dev:agents": "npm run dev -w @charter/agents",
+    "dev:web": "npm run dev -w @charter/web",
+    "dev:mock": "npm run dev:mock -w @charter/web",
+    "attack": "npm run attack -w @charter/agents",
+    "reindex": "npm run reindex -w @charter/indexer",
+    "e2e:mock": "npm run e2e:mock -w @charter/scripts",
+    "e2e": "npm run e2e -w @charter/scripts",
+    "build:web": "npm run build -w @charter/web",
+    "test:contracts": "cargo test -p charter -p mock-ft",
+    "test:js": "npm test -w @charter/near-client && npm test -w @charter/indexer && npm test -w @charter/agents && npm test -w @charter/web && npm test -w @charter/scripts",
+    "test": "npm run test:js && npm run test:contracts",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "build:wasm": "cargo build --target wasm32-unknown-unknown --release -p charter -p mock-ft"
+  }
+}
