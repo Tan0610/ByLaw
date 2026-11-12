@@ -5,7 +5,7 @@ export const USE_MOCKS: boolean = env.MODE === "mock" || env.MODE === "test" || 
 export const NETWORK: "testnet" = "testnet"; // ByLaw is testnet-only by design.
 
 export const INDEXER_URL: string = (env.VITE_INDEXER_URL as string) || "http://localhost:8788";
-export const RPC_URL: string = (env.VITE_NEAR_RPC_URL as string) || "https://rpc.testnet.fastnear.com";
+export const RPC_URL: string = (env.VITE_NEAR_RPC_URL as string) || "https://near-testnet.drpc.org";
 export const EXPLORER_URL = "https://testnet.nearblocks.io";
 
 // In mock mode these are demo names; on testnet they come from VITE_* env (or GET /config).

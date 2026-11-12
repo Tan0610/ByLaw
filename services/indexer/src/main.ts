@@ -21,7 +21,7 @@ if (mode === 'fake') {
   const contractId = env.BYLAW_CONTRACT_ID;
   if (!contractId) { log('error', 'BYLAW_CONTRACT_ID is required in near mode'); process.exit(2); }
   const network = env.NEAR_NETWORK ?? 'testnet';
-  const rpcUrl = env.NEAR_RPC_URL || (network === 'mainnet' ? 'https://rpc.mainnet.near.org' : 'https://rpc.testnet.fastnear.com');
+  const rpcUrl = env.NEAR_RPC_URL || (network === 'mainnet' ? 'https://rpc.mainnet.near.org' : 'https://near-testnet.drpc.org');
   client = new NearContractClient({ rpcUrl, contractId, tokenId: env.TOKEN_ID ?? '' });
   cfg = { contract_id: contractId, dao_id: env.DAO_ID ?? '', token_id: env.TOKEN_ID ?? '' };
 }

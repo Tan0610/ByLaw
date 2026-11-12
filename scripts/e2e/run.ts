@@ -45,7 +45,7 @@ async function readOnlyCheck() {
     ].join("\n"));
     process.exit(argv.includes("--check") ? 2 : 0);
   }
-  const rpcUrl = process.env.NEAR_RPC_URL || "https://rpc.testnet.fastnear.com";
+  const rpcUrl = process.env.NEAR_RPC_URL || "https://near-testnet.drpc.org";
   const c = new NearContractClient({ rpcUrl, contractId, tokenId: process.env.TOKEN_ID ?? "" });
   step(`Read-only check of ${contractId} via ${rpcUrl}`);
   const bylaw = await c.getByLaw();
