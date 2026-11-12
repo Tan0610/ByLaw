@@ -33,22 +33,22 @@ cargo build --target wasm32-unknown-unknown --release -p bylaw -p mock-ft
 
 ## 2. Create sub-accounts
 ```bash
-near account create-account fund-myself bylaw.YOU.testnet '15 NEAR' autogenerate-new-keypair save-to-keychain sign-as YOU.testnet network-config testnet sign-with-keychain send
-near account create-account fund-myself tusd.YOU.testnet '5 NEAR' autogenerate-new-keypair save-to-keychain sign-as YOU.testnet network-config testnet sign-with-keychain send
+near account create-account fund-myself bylaw.YOU.testnet '8 NEAR' autogenerate-new-keypair save-to-keychain sign-as YOU.testnet network-config testnet sign-with-keychain send
+near account create-account fund-myself tusd.YOU.testnet '3 NEAR' autogenerate-new-keypair save-to-keychain sign-as YOU.testnet network-config testnet sign-with-keychain send
 ```
 The bylaw account pays storage for jobs/spends and creates agent sub-accounts
 (`<name>.bylaw.YOU.testnet`), so keep a few NEAR on it.
 
 ## 3. Deploy and init the token (mock-ft, 6 decimals)
 ```bash
-near contract deploy tusd.YOU.testnet use-file target/wasm32-unknown-unknown/release/mock_ft.wasm with-init-call new json-args '{}' prepaid-gas '30 Tgas' attached-deposit '0 NEAR' network-config testnet sign-with-keychain send
+near contract deploy tusd.YOU.testnet use-file wasm-artifacts/mock_ft/mock_ft.wasm with-init-call new json-args '{}' prepaid-gas '30 Tgas' attached-deposit '0 NEAR' network-config testnet sign-with-keychain send
 ```
 
 ## 4. Deploy and init ByLaw (owner = the DAO)
 `params` must contain `text_hash = "0x" + sha256(text)`. Compute it with
 `printf '%s' "$TEXT" | sha256sum`. Example params are in `ABI.md` section 0.
 ```bash
-near contract deploy bylaw.YOU.testnet use-file target/wasm32-unknown-unknown/release/bylaw.wasm with-init-call new json-args '{"owner":"DAO","token":"tusd.YOU.testnet","params":{"text":"ByLaw v1: agents run the business within these rules.","text_hash":"0x38d07802abd15ce9007eaa1b702a0fbd58029e86d5591a10c102b84df06edb90","min_price":"1000000","max_price":"1000000000","bid_window_ns":"600000000000","submit_window_ns":"3600000000000","review_window_ns":"3600000000000","max_bid_bps":10000,"split":{"reviewer":800,"producer":5500,"sales":700,"treasury":1500,"seats":1500},"rep_start":100,"rep_gain":10,"rep_loss":30,"rep_expire_loss":20,"rep_freeze_below":50,"base_budget":"20000000","per_rep_budget":"10000000","max_budget":"100000000","budget_window_ns":"3600000000000","per_tx_cap":"25000000","approval_threshold":"15000000"}}' prepaid-gas '100 Tgas' attached-deposit '0 NEAR' network-config testnet sign-with-keychain send
+near contract deploy bylaw.YOU.testnet use-file wasm-artifacts/bylaw/bylaw.wasm with-init-call new json-args '{"owner":"DAO","token":"tusd.YOU.testnet","params":{"text":"ByLaw v1: agents run the business within these rules.","text_hash":"0x38d07802abd15ce9007eaa1b702a0fbd58029e86d5591a10c102b84df06edb90","min_price":"1000000","max_price":"1000000000","bid_window_ns":"600000000000","submit_window_ns":"3600000000000","review_window_ns":"3600000000000","max_bid_bps":10000,"split":{"reviewer":800,"producer":5500,"sales":700,"treasury":1500,"seats":1500},"rep_start":100,"rep_gain":10,"rep_loss":30,"rep_expire_loss":20,"rep_freeze_below":50,"base_budget":"20000000","per_rep_budget":"10000000","max_budget":"100000000","budget_window_ns":"3600000000000","per_tx_cap":"25000000","approval_threshold":"15000000"}}' prepaid-gas '100 Tgas' attached-deposit '0 NEAR' network-config testnet sign-with-keychain send
 near contract call-function as-read-only bylaw.YOU.testnet get_bylaw json-args '{}' network-config testnet now
 ```
 

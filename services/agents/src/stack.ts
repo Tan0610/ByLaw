@@ -79,7 +79,7 @@ export function buildAgents(o: BuildAgentsOptions): Agent[] {
 /** Real-network clients from env keys (keys stay in memory only). */
 export function nearClientFactory(env: Record<string, string | undefined>, keys: Partial<Record<AgentName, AgentKeys>>) {
   const network = env.NEAR_NETWORK ?? 'testnet';
-  const rpcUrl = env.NEAR_RPC_URL || (network === 'mainnet' ? 'https://rpc.mainnet.near.org' : 'https://rpc.testnet.near.org');
+  const rpcUrl = env.NEAR_RPC_URL || (network === 'mainnet' ? 'https://rpc.mainnet.near.org' : 'https://rpc.testnet.fastnear.com');
   const contractId = env.BYLAW_CONTRACT_ID ?? '';
   const tokenId = env.TOKEN_ID ?? '';
   return (name: AgentName): ContractClient => {

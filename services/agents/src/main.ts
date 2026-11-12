@@ -15,7 +15,7 @@ const env = process.env;
 const log = createLogger({ svc: 'agents' });
 const mode = (env.AGENTS_MODE ?? 'fake').toLowerCase();
 const intervalMs = Number(env.AGENT_TICK_MS ?? 2000);
-const rpcUrl = env.NEAR_RPC_URL || 'https://rpc.testnet.near.org';
+const rpcUrl = env.NEAR_RPC_URL || 'https://rpc.testnet.fastnear.com';
 const facts: FactsProvider = (env.FACTS_SOURCE ?? (mode === 'near' ? 'rpc' : 'canned')) === 'rpc' ? new RpcFactsProvider({ rpcUrl }) : new CannedFactsProvider();
 const summarizer = createSummarizer(env, log);
 const tamper = Object.fromEntries((env.DEMO_TAMPER ?? '').split(',').filter(Boolean).map((n) => [n.trim(), true])) as Partial<Record<AgentName, boolean>>;
