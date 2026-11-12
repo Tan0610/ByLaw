@@ -59,6 +59,7 @@ const EVENT_LABEL: Record<string, string> = {
   job_posted: "Customer paid into escrow", job_opened: "Sales agent accepted the job", bid_placed: "Analyst placed a bid",
   job_awarded: "Job awarded", work_submitted: "Analyst submitted the report", work_reviewed: "Reviewer decided",
   job_settled: "Revenue split settled", job_refunded: "Refunded to customer", job_expired: "Job expired", review_overridden: "DAO overrode the review",
+  spend_recorded: "Treasurer spend recorded", spend_approved: "DAO approved a spend", spend_paid: "Spend paid out", bylaw_updated: "ByLaw amended by the DAO",
 };
 
 function detail(e: TimelineEvent): string {
@@ -71,6 +72,9 @@ function detail(e: TimelineEvent): string {
     case "work_reviewed": return d.approve ? "Approved" : `Rejected${d.reason ? `: ${d.reason}` : ""}`;
     case "job_settled": return `${fmtToken(d.price)} tUSD distributed`;
     case "job_refunded": case "job_expired": return String(d.reason ?? "");
+    case "spend_recorded": return `${fmtToken(d.amount)} tUSD to ${d.vendor} · ${String(d.outcome ?? "")}`;
+    case "spend_approved": case "spend_paid": return `request #${d.request_id}`;
+    case "bylaw_updated": return `version ${d.version}`;
     default: return "";
   }
 }

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Account, Badge, Empty, ErrorBox, Loading, NeedWallet, PageHead, Stat, StateBadge, Table, TxStatus, useTx } from "../components/ui";
 import { proposeTx } from "../lib/dao";
-import { fmtTime, fmtToken } from "../lib/format";
+import { fmtTime, fmtToken, shortAcct } from "../lib/format";
 import { useIds, useSpends, useStats } from "../lib/hooks";
 import type { Spend } from "../lib/types";
 
@@ -54,20 +54,20 @@ export default function TreasuryPage() {
         <TxStatus state={tx.state} />
         {spends.isLoading ? <Loading what="spends" /> : spends.error ? <ErrorBox error={spends.error} retry={() => spends.refetch()} /> :
           !rows.length ? <Empty>Nothing to show for this filter.</Empty> : (
-            <Table label="Spend attempts">
-              <thead><tr><th>#</th><th>Agent</th><th>Vendor</th><th className="num">Amount</th><th>Outcome</th><th>Memo</th><th>When</th></tr></thead>
+            <Table label="Spend attempts" minRem={36}>
+              <thead><tr><th>#</th><th>Outcome</th><th>Vendor</th><th className="num">Amount</th><th>Agent</th><th>Memo</th><th>When</th></tr></thead>
               <tbody>
                 {rows.map((s) => (
                   <tr key={s.id}>
                     <td>{s.id}</td>
-                    <td className="mono break">{s.agent_account}</td>
-                    <td><Account id={s.vendor} /></td>
-                    <td className="num nowrap">{fmtToken(s.amount)}</td>
                     <td>
                       <StateBadge state={s.state} />
                       <div className="small muted">{s.reason}</div>
                       {s.state === "Pending" && <button className="sm" style={{ marginTop: 4 }} disabled={!tx.accountId} onClick={() => void propose(s)}>Propose approval to DAO</button>}
                     </td>
+                    <td><Account id={s.vendor} /></td>
+                    <td className="num nowrap">{fmtToken(s.amount)}</td>
+                    <td className="mono" title={s.agent_account}>{shortAcct(s.agent_account)}</td>
                     <td className="small">{s.memo}{s.job ? ` (job #${s.job})` : ""}</td>
                     <td className="small nowrap">{fmtTime(s.ts_iso)}</td>
                   </tr>

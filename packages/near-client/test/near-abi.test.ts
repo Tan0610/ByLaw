@@ -99,3 +99,15 @@ test('parseEvents reads bylaw NEP-297 logs and ignores others', () => {
   assert.deepEqual(evs.map((e) => e.event), ['job_posted']);
   assert.equal(evs[0].data[0].job_id, '4');
 });
+
+test('get_bylaw_version sends {version} as a number and decodes a historical version; null when unknown', async () => {
+  const calls = stub((_m, a) => (a.version === 1
+    ? { version: 1, text: 'ByLaw v1', text_hash: '0x' + '11'.repeat(32), min_price: '1', max_price: '2', bid_window_ns: '1', submit_window_ns: '1', review_window_ns: '1', max_bid_bps: 10000, split: { reviewer: 800, producer: 5500, sales: 700, treasury: 1500, seats: 1500 }, rep_start: 100, rep_gain: 10, rep_loss: 30, rep_expire_loss: 20, rep_freeze_below: 50, base_budget: '1', per_rep_budget: '1', max_budget: '1', budget_window_ns: '1', per_tx_cap: '1', approval_threshold: '1' }
+    : null));
+  const c = client();
+  const v1 = await c.getByLawVersion(1);
+  assert.equal(v1?.version, 1);
+  assert.equal(v1?.text, 'ByLaw v1');
+  assert.equal(await c.getByLawVersion(9), null);
+  assert.deepEqual(calls.map((x) => [x.method, x.args]), [['get_bylaw_version', { version: 1 }], ['get_bylaw_version', { version: 9 }]]);
+});

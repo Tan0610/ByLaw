@@ -117,3 +117,46 @@ test('treasurer attack: overspend and rogue vendor are recorded denials', async 
   assert.equal((await f.as(null).getStats()).treasury, '100000000', 'nothing was paid');
   assert.equal(f.events.filter((e) => e.event === 'spend_recorded').length, 3);
 });
+
+test('treasurer never pays twice for a job, even when the read-back after the payment keeps failing', async () => {
+  // Reproduces a bug seen on testnet: requestSpend succeeded, getSpend then hit a rate limit, the step was
+  // marked failed and retried, and every retry paid again (10 duplicate spends).
+  const { FakeContract, ManualClock, seedDemoWorld, DEMO_ACCOUNTS: D } = await import('@bylaw/near-client');
+  const { TreasurerAgent } = await import('../src/index.ts');
+  const clock = new ManualClock();
+  const fake = new FakeContract({ clock: clock.now });
+  seedDemoWorld(fake);
+  const hash = '0x' + 'ab'.repeat(32);
+  const id = (await fake.as(D.customer).postJob('x.testnet', '100000000'))!;
+  await fake.as(D.sales).acceptJob(id);
+  await fake.as(D.analyst1).placeBid(id, '60000000');
+  clock.advanceSec(61);
+  await fake.as(D.sales).awardJob(id);
+  await fake.as(D.analyst1).submitWork(id, hash, 'artifact://h');
+  await fake.as(D.reviewer).reviewWork(id, true, hash);
+
+  const real = fake.as(D.treasurer);
+  let readFailures = 100; // the read-back always fails
+  const flaky = new Proxy(real, {
+    get(t, p, r) {
+      if (p === 'getSpend') return async () => { if (readFailures-- > 0) throw new Error('rpc http 429'); return null; };
+      return Reflect.get(t, p, r);
+    },
+  });
+  const agent = new TreasurerAgent(
+    { name: 'treasurer', client: flaky as typeof real, log: silentLogger, ledger: new StepLedger({ maxAttempts: 5 }) },
+    { vendor: D.vendor, amountPerJob: 1_000_000n },
+  );
+  for (let i = 0; i < 8; i++) await agent.tick();
+  const mine = (await real.listSpends()).filter((s) => s.job === id);
+  assert.equal(mine.length, 1, 'exactly one purchase for the job, however many ticks and failed read-backs');
+  assert.equal(mine[0].state, 'Paid');
+
+  // and a brand-new agent process (empty ledger, e.g. after a restart) must not pay again either
+  const restarted = new TreasurerAgent(
+    { name: 'treasurer', client: real, log: silentLogger, ledger: new StepLedger({ maxAttempts: 5 }) },
+    { vendor: D.vendor, amountPerJob: 1_000_000n },
+  );
+  await restarted.tick();
+  assert.equal((await real.listSpends()).filter((s) => s.job === id).length, 1, 'a restart with an empty ledger must not pay twice');
+});

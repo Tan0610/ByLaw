@@ -36,16 +36,16 @@ export default function SeatsPage() {
         <h2 id="seats">Seats</h2>
         {seats.isLoading ? <Loading what="seats" /> : seats.error ? <ErrorBox error={seats.error} retry={() => seats.refetch()} /> :
           !seats.data?.length ? <Empty>No seats minted yet. The DAO mints seats with mint_seat.</Empty> : (
-            <Table label="Seat NFTs">
-              <thead><tr><th>Seat</th><th>Owner</th><th className="num">Weight</th><th className="num">Share</th><th className="num">Pending dividends</th><th /></tr></thead>
+            <Table label="Seat NFTs" minRem={30}>
+              <thead><tr><th>Seat</th><th>Owner</th><th className="num">Pending dividends</th><th className="num">Weight</th><th className="num">Share</th><th /></tr></thead>
               <tbody>
                 {seats.data.map((s) => (
                   <tr key={s.token_id}>
                     <td>#{s.token_id}</td>
                     <td><Account id={s.owner} />{s.owner === me && <> <span className="badge info">you</span></>}</td>
+                    <td className="num nowrap">{fmtToken(s.pending)} tUSD</td>
                     <td className="num">{s.weight}</td>
                     <td className="num">{totalW ? ((s.weight / totalW) * 100).toFixed(0) : 0}%</td>
-                    <td className="num">{fmtToken(s.pending)} tUSD</td>
                     <td>
                       <button className="sm" disabled={s.owner !== me || s.pending === "0" || tx.state.status === "pending"} aria-label={`Credit pending dividends of seat ${s.token_id} to my balance`}
                         onClick={() => void tx.run({ receiverId: ids.contractId, methodName: "checkpoint_seat", args: { token_id: s.token_id } }, "Pending dividends credited. Now claim your balance.")}>

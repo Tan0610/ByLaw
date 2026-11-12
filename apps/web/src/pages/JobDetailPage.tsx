@@ -1,7 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { Account, ErrorBox, Loading, PageHead, Stat, StateBadge, Table } from "../components/ui";
 import { JobSteps, Timeline, Waterfall } from "../components/viz";
-import { fmtTime, fmtToken, shortHash, waterfall } from "../lib/format";
+import { fmtTime, fmtToken, shortAcct, shortHash, waterfall } from "../lib/format";
 import { useAgents, useArtifact, useByLaw, useJob, useTimeline } from "../lib/hooks";
 
 export default function JobDetailPage() {
@@ -42,12 +42,12 @@ export default function JobDetailPage() {
           <h2 id="bids">Bids and scoring</h2>
           {!sortedBids.length ? <p className="muted">No bids yet.</p> : (
             <>
-              <Table label="Bids">
+              <Table label="Bids" minRem={20}>
                 <thead><tr><th>Agent</th><th className="num">Price</th><th className="num">Score</th><th /></tr></thead>
                 <tbody>
                   {sortedBids.map((b, i) => (
                     <tr key={b.agent}>
-                      <td className="mono break">{b.agent_account}</td>
+                      <td className="mono" title={b.agent_account}>{shortAcct(b.agent_account)}</td>
                       <td className="num">{fmtToken(b.price)}</td>
                       <td className="num">{Number.isFinite(b.score) ? b.score.toFixed(2) : "n/a"}</td>
                       <td>{(j.winner ? b.agent === j.winner : i === 0) ? <span className="badge ok">{j.winner ? "Winner" : "Leading"}</span> : null}</td>

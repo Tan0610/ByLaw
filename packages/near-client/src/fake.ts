@@ -465,6 +465,7 @@ export class FakeContract {
       nowNs: async () => f.now(),
       blockHeight: async () => f.height,
       getByLaw: async () => structuredClone(f.params),
+      getByLawVersion: async (v) => structuredClone(f.history.find((p) => p.version === v) ?? null),
       getGuardians: async () => [...f.guardians],
       getAgent: async (id) => structuredClone(f.agents.get(id) ?? null),
       listAgents: async () => structuredClone([...f.agents.values()]),

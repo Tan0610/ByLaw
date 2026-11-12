@@ -12,6 +12,8 @@ export interface ContractClient {
   blockHeight(): Promise<number>;
   // views (CONTRACT_SPEC 4.12)
   getByLaw(): Promise<ByLawParams>;
+  /** A past or current bylaw version (contract view `get_bylaw_version`), or null if it never existed. */
+  getByLawVersion(version: number): Promise<ByLawParams | null>;
   getGuardians(): Promise<string[]>;
   getAgent(tokenId: string): Promise<Agent | null>;
   listAgents(): Promise<Agent[]>;

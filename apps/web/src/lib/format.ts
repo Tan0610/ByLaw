@@ -44,6 +44,13 @@ export function fmtTime(iso?: string | null): string {
   return d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
+/** "analyst1.tan-bylaw-app.testnet" -> "analyst1". Two-part names (alice.testnet) are shown in full. */
+export function shortAcct(a?: string | null): string {
+  if (!a) return "";
+  const parts = a.split(".");
+  return parts.length > 2 ? parts[0] : a;
+}
+
 export function shortHash(h?: string | null): string {
   if (!h) return "";
   return h.length > 14 ? `${h.slice(0, 8)}…${h.slice(-6)}` : h;

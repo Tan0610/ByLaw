@@ -6,7 +6,7 @@ import type { Agent } from "../lib/types";
 
 const ROLE_METHODS: Record<string, string> = {
   Sales: "accept_job, award_job", Analyst: "place_bid, submit_work",
-  Reviewer: "review_work", Treasurer: "request_spend, open_pool, contribute_pool",
+  Reviewer: "review_work", Treasurer: "request_spend", // pools are not in the deployed contract, so the key is limited to this one method
 };
 
 function AgentCard({ a, canFreeze, onFreeze, floor }: { a: Agent; canFreeze: boolean; onFreeze: (a: Agent) => void; floor?: number }) {

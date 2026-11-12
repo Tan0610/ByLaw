@@ -112,6 +112,7 @@ export function NeedWallet({ what }: { what: string }) {
   );
 }
 
-export function Table({ children, label }: { children: ReactNode; label: string }) {
-  return <div className="table-wrap" tabIndex={0} role="region" aria-label={label}><table>{children}</table></div>;
+/** minRem: on narrow screens the table keeps this width and the wrapper scrolls sideways instead of crushing columns. */
+export function Table({ children, label, minRem }: { children: ReactNode; label: string; minRem?: number }) {
+  return <div className="table-wrap" tabIndex={0} role="region" aria-label={label}><table style={minRem ? { minWidth: `${minRem}rem` } : undefined}>{children}</table></div>;
 }

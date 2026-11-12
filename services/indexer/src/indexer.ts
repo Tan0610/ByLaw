@@ -69,6 +69,7 @@ export class Indexer {
         this.client.listSpends(), this.client.listSeats(),
       ]);
       const repById = new Map(agents.map((a) => [a.token_id, a.rep]));
+      await this.backfillByLaw(bylaw);
       changed += this.diffByLaw(bylaw, now);
       changed += await this.diffAgents(agents, now);
       changed += this.diffJobs(jobs, repById, bylaw, seats, now);
@@ -85,6 +86,19 @@ export class Indexer {
       this.polling = false;
     }
     return { changed };
+  }
+
+  /**
+   * Versions older than the first one this indexer saw (it may have started after an amendment, or been reset)
+   * are read from the contract's own history (get_bylaw_version). seen_ns '0' marks "time unknown".
+   */
+  private async backfillByLaw(current: ByLawParams): Promise<void> {
+    const have = new Set(this.db.bylaws().map((k) => k.version));
+    for (let v = 1; v < current.version; v++) {
+      if (have.has(v)) continue;
+      const old = await this.client.getByLawVersion(v);
+      if (old) this.db.putByLaw(v, JSON.stringify(old), '0');
+    }
   }
 
   private diffByLaw(c: ByLawParams, now: string): number {
@@ -303,7 +317,7 @@ export class Indexer {
   bylawHistory() {
     const rows = this.db.bylaws().map((r) => ({ ...(JSON.parse(r.json) as ByLawParams), seen_ns: r.seen_ns }));
     return rows.map((c, i) => ({
-      version: c.version, text_hash: c.text_hash, text: c.text, params: stripText(c), first_seen_iso: nsToIso(c.seen_ns),
+      version: c.version, text_hash: c.text_hash, text: c.text, params: stripText(c), first_seen_iso: c.seen_ns === '0' ? null : nsToIso(c.seen_ns),
       diff: i === 0 ? [] : lineDiff(rows[i - 1].text, c.text),
     }));
   }

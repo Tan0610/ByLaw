@@ -16,7 +16,7 @@ Status at the time of writing (2026-11-12), so you know exactly what you can che
 - **It is deployed and has run on NEAR testnet.** The contract is `tan-bylaw-app.testnet`, owned by the Sputnik DAO `bylaw-dao.sputnikv2.testnet`; the token is `tan-bylaw-tusd.testnet`. Two real jobs ran end to end with the five agents, the seat dividends were claimed, the security attacks were denied on-chain and a guardian freeze was exercised. Every claim has a verified transaction link in **[`docs/TESTNET_EVIDENCE.md`](docs/TESTNET_EVIDENCE.md)**, including its honest limits (two-account council, template summaries instead of an LLM).
 - The contract passes 70 unit and property tests, and the wasm in CI is built with `cargo-near`; the on-chain code hash equals the CI artifact.
 - The whole story also runs offline with no network: the in-memory `FakeContract` (`packages/near-client`) with the real indexer and agent loops, and the web app on mock data.
-- Not yet shown: the web app has not been exercised in a browser against this deployment.
+- The web app's pages have been viewed in Chrome against the live deployment (phone and desktop widths). Sending transactions from the UI with a real wallet has **not** been tested yet; the on-chain actions in the evidence file were sent with the CLI and the agents' keys.
 - Attestation (T4) and collective purchase pools (T3) are **not** in this build. The UI shows no attestation badge.
 
 ## Problem

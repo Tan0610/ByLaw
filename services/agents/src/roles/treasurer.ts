@@ -21,9 +21,19 @@ export class TreasurerAgent implements Agent {
     for (const j of await listAllJobs(client, 'Settled')) {
       const jl = log.child({ job_id: j.id });
       await ledger.once(`${j.id}:purchase`, jl, async () => {
+        // At most once per job, checked against the chain. A spend is a real payment, so a retry must never
+        // pay twice: an earlier attempt may have succeeded on-chain even though this step was marked failed
+        // (for example the read-back below hit an RPC rate limit). Any record for this job counts, whatever its state.
+        const already = (await client.listSpends()).find((x) => x.job === j.id && x.agent === me.token_id);
+        if (already) { jl.info('purchase already recorded, not paying again', { request_id: already.id, state: already.state }); return; }
         const id = await client.requestSpend(this.vendor, this.amount.toString(), j.id, `rpc credits for job ${j.id}`);
-        const s = await client.getSpend(id);
-        jl.info('request_spend', { request_id: id, vendor: this.vendor, amount: this.amount.toString(), state: s?.state, reason: s?.reason });
+        // The payment is made. Reading it back is only for the log: failing here must not make the step retry.
+        try {
+          const s = await client.getSpend(id);
+          jl.info('request_spend', { request_id: id, vendor: this.vendor, amount: this.amount.toString(), state: s?.state, reason: s?.reason });
+        } catch (e) {
+          jl.warn('request_spend sent; could not read it back', { request_id: id, error: e instanceof Error ? e.message : String(e) });
+        }
       });
     }
   }

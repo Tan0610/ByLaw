@@ -62,7 +62,7 @@ export default function JobsPage() {
         <h2 id="all">All jobs</h2>
         {jobs.isLoading ? <Loading what="jobs" /> : jobs.error ? <ErrorBox error={jobs.error} retry={() => jobs.refetch()} /> :
           !jobs.data?.length ? <Empty>No jobs yet. Order one above.</Empty> : (
-            <Table label="Jobs">
+            <Table label="Jobs" minRem={34}>
               <thead><tr><th>Job</th><th>Target</th><th>Customer</th><th className="num">Price</th><th>Progress</th><th>Created</th></tr></thead>
               <tbody>
                 {jobs.data.map((j) => (

@@ -135,6 +135,7 @@ export class NearContractClient implements ContractClient {
   async blockHeight() { return (await this.block()).height; }
 
   async getByLaw() { return normByLaw(await this.view('get_bylaw')); }
+  async getByLawVersion(version: number) { const r = await this.view('get_bylaw_version', { version }); return r ? normByLaw(r) : null; }
   async getGuardians() { return (await this.view<string[]>('get_guardians')).map(s); }
   async getAgent(id: string) { const a = await this.view('get_agent', { token_id: id }); return a ? normAgent(a) : null; }
   async listAgents() { return (await this.view<any[]>('list_agents')).map(normAgent); }

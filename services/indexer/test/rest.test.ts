@@ -259,3 +259,19 @@ test('openapi.yaml documents every route', async () => {
   for (const p of paths) assert.ok(yaml.includes(`  ${p}:`), `openapi missing ${p}`);
   void Db;
 });
+
+test('bylaw history is backfilled from the contract when the indexer starts after amendments', async () => {
+  const fake = new FakeContract({ clock: new ManualClock().now });
+  seedDemoWorld(fake);
+  fake.setByLaw({ text: 'ByLaw v2\nsecond line' });
+  fake.setByLaw({ text: 'ByLaw v3\nthird line' });
+  const cfg = { contract_id: fake.contractId, dao_id: fake.ownerId, token_id: fake.tokenId };
+  const { app, indexer } = await createIndexerApp({ client: fake.as(null), cfg });
+  await indexer.poll();
+  const h = await get(app, '/bylaw/history');
+  assert.deepEqual(h.body.map((x: any) => x.version), [1, 2, 3]);
+  assert.equal(h.body[0].first_seen_iso, null, 'v1 predates the indexer: its time is unknown and must not be invented');
+  assert.ok(h.body[2].first_seen_iso, 'the version the indexer actually saw keeps its first-seen time');
+  assert.ok(h.body[1].diff.length > 0, 'the v1 -> v2 diff is available');
+  assert.equal(h.body[0].text, fake.bylawHistory()[0].text, 'the backfilled v1 is the real original text');
+});
