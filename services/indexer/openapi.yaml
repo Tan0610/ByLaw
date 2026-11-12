@@ -1,0 +1,218 @@
+openapi: 3.0.3
+info:
+  title: Charter Indexer
+  version: 0.1.0
+  description: >
+    REST + SSE over the charter contract (INTERFACES.md section 3). snake_case JSON, u64/u128 as decimal
+    strings, hashes 0x + 64 hex. Errors are {"error":{"code","message"}}. Base URL default http://localhost:8788.
+servers:
+  - url: http://localhost:8788
+components:
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties: { code: { type: string }, message: { type: string } }
+    Hash: { type: string, pattern: '^0x[0-9a-f]{64}$' }
+    U128: { type: string, pattern: '^[0-9]+$' }
+    JobState:
+      type: string
+      enum: [Posted, Open, Awarded, Submitted, Accepted, Rejected, Settled, Refunded, Expired]
+    Agent:
+      type: object
+      properties:
+        token_id: { type: string }
+        account: { type: string }
+        kind: { type: string, enum: [Sales, Analyst, Reviewer, Treasurer] }
+        state: { type: string, enum: [Active, Frozen, Retired] }
+        owner: { type: string }
+        rep: { type: integer }
+        delivered: { type: integer }
+        rejected: { type: integer }
+        budget: { $ref: '#/components/schemas/U128' }
+        win_spent: { $ref: '#/components/schemas/U128' }
+        budget_remaining: { $ref: '#/components/schemas/U128' }
+        win_start_iso: { type: string, nullable: true }
+        earnings:
+          type: object
+          properties:
+            total: { $ref: '#/components/schemas/U128' }
+            by_role: { type: object, additionalProperties: { $ref: '#/components/schemas/U128' } }
+            settled_jobs: { type: integer }
+    Bid:
+      type: object
+      properties:
+        agent: { type: string }
+        agent_account: { type: string, nullable: true }
+        price: { $ref: '#/components/schemas/U128' }
+        ts_ns: { type: string }
+        ts_iso: { type: string }
+        score: { type: string, description: 'price*1000/(1000+rep) at first sight; lower wins' }
+        is_winner: { type: boolean }
+    Job:
+      type: object
+      properties:
+        id: { type: string }
+        customer: { type: string }
+        target: { type: string }
+        price: { $ref: '#/components/schemas/U128' }
+        state: { $ref: '#/components/schemas/JobState' }
+        created_iso: { type: string }
+        deadline_iso: { type: string, nullable: true }
+        sales: { type: string, nullable: true }
+        bids: { type: array, items: { $ref: '#/components/schemas/Bid' } }
+        winner: { type: string, nullable: true }
+        reviewer: { type: string, nullable: true }
+        attempts: { type: integer }
+        deliverable:
+          nullable: true
+          type: object
+          properties: { hash: { $ref: '#/components/schemas/Hash' }, uri: { type: string }, attestation: { type: string, nullable: true } }
+        waterfall:
+          nullable: true
+          type: object
+          properties:
+            reviewer: { $ref: '#/components/schemas/U128' }
+            producer: { $ref: '#/components/schemas/U128' }
+            sales: { $ref: '#/components/schemas/U128' }
+            seats: { $ref: '#/components/schemas/U128' }
+            treasury: { $ref: '#/components/schemas/U128' }
+    Report:
+      type: object
+      required: [schema, target, facts, summary, model, attestation]
+      properties:
+        schema: { type: string, enum: [charter.report.v1] }
+        target: { type: string }
+        facts: { type: object }
+        summary: { type: string }
+        model: { type: string }
+        attestation: { nullable: true }
+paths:
+  /health:
+    get:
+      summary: Liveness
+      responses:
+        '200':
+          description: '{near_height, indexer_lag_s, agents_alive, llm_ok, last_error}'
+  /config:
+    get:
+      summary: Deployment config
+      responses:
+        '200': { description: '{contract_id, dao_id, token_id, guardians, charter:{version,text_hash}}' }
+  /charter:
+    get:
+      summary: Current charter and params
+      responses:
+        '200': { description: CharterParams }
+        '503': { description: Not indexed yet, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+  /charter/history:
+    get:
+      summary: Versions seen, with text and line diff against the previous version
+      responses:
+        '200': { description: 'array of {version,text_hash,text,params,first_seen_iso,diff:[{op:+|-|" ",line}]}' }
+  /agents:
+    get:
+      summary: Agents
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Agent' } } } } }
+  /agents/{token_id}:
+    get:
+      summary: One agent
+      parameters: [{ name: token_id, in: path, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/Agent' } } } }
+        '404': { description: not found }
+  /jobs:
+    get:
+      summary: Jobs, newest first
+      parameters:
+        - { name: state, in: query, schema: { $ref: '#/components/schemas/JobState' } }
+        - { name: customer, in: query, schema: { type: string } }
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Job' } } } } }
+        '400': { description: bad filter }
+  /jobs/{id}:
+    get:
+      summary: Job with bids, scores, winner, reviewer, deliverable, waterfall
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/Job' } } } }
+        '404': { description: not found }
+  /jobs/{id}/timeline:
+    get:
+      summary: Ordered events (derived by diffing views; stable across reindex)
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: 'array of {seq,type,ts_ns,ts_iso,data}' }
+        '404': { description: not found }
+  /spends:
+    get:
+      summary: Procurement requests including rejected attempts (outcome Paid, Pending or Rejected:<reason>)
+      responses:
+        '200': { description: array of SpendRequest plus outcome }
+  /pools:
+    get:
+      summary: Procurement pools (T3, not implemented; always [])
+      responses:
+        '200': { description: '[]' }
+  /seats:
+    get:
+      summary: Seats with pending dividends
+      responses:
+        '200': { description: 'array of {token_id, owner, weight, last_acc, pending}' }
+  /seats/{token_id}:
+    get:
+      summary: One seat
+      parameters: [{ name: token_id, in: path, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: ok }
+        '404': { description: not found }
+  /claimable/{account}:
+    get:
+      summary: Claimable tUSD for an account (live contract view)
+      parameters: [{ name: account, in: path, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: '{account, claimable}' }
+        '502': { description: upstream RPC failure }
+  /artifacts/{hash}:
+    get:
+      summary: Report artifact JSON by sha256(canonical_json(artifact))
+      parameters: [{ name: hash, in: path, required: true, schema: { $ref: '#/components/schemas/Hash' } }]
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/Report' } } } }
+        '404': { description: not found }
+  /artifacts:
+    post:
+      summary: (extra) Publish a charter.report.v1 artifact; server computes and returns the hash. Needs x-indexer-token if INDEXER_WRITE_TOKEN is set.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Report' } } } }
+      responses:
+        '201': { description: '{hash}' }
+        '400': { description: not a report }
+        '401': { description: bad token }
+  /heartbeat:
+    post:
+      summary: (extra) Agent liveness, feeds /health agents_alive and llm_ok
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [agent], properties: { agent: { type: string }, llm_ok: { type: boolean } } } } } }
+      responses:
+        '200': { description: '{ok:true}' }
+  /attestations/{job_id}:
+    get:
+      summary: Attestation reference (T4 verification not implemented; verified is always false)
+      parameters: [{ name: job_id, in: path, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: '{job_id, attestation, verified, verification}' }
+        '404': { description: not found }
+  /stats:
+    get:
+      summary: Treasury, escrow, totals and solvency check
+      responses:
+        '200': { description: 'contract stats plus {solvency:{ok,accounted,expected}, jobs_by_state, spends}' }
+  /stream:
+    get:
+      summary: Server-sent events; each message is {type, id} (types job, agent, spend, seat, charter, stats, event, artifact, hello)
+      responses:
+        '200': { description: text/event-stream }
