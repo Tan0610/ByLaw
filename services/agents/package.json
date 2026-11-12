@@ -1,0 +1,19 @@
+{
+  "name": "@charter/agents",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "dev": "node src/main.ts",
+    "start": "node src/main.ts",
+    "attack": "node src/attack.ts",
+    "test": "node --test test/*.test.ts",
+    "typecheck": "tsc -p . --noEmit"
+  },
+  "dependencies": {
+    "@charter/near-client": "*",
+    "@charter/indexer": "*"
+  }
+}
