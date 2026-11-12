@@ -1,0 +1,24 @@
+{
+  "_comment": "Sputnik v2 add_proposal template for charter.rotate_agent. Replace charter.YOU.testnet and the example args, then recompute \"args\" = base64(JSON.stringify(args_json)). Call <dao>.sputnikv2.testnet add_proposal with this \"proposal\" object and the DAO proposal bond as deposit.",
+  "_args_json": {
+    "token_id": "2",
+    "new_name": "analyst-1b",
+    "pubkey": "ed25519:REPLACE_WITH_NEW_PUBLIC_KEY"
+  },
+  "proposal": {
+    "description": "Charter: Issue a fresh identity (new sub-account + key) for an agent NFT; rep carries over.",
+    "kind": {
+      "FunctionCall": {
+        "receiver_id": "charter.YOU.testnet",
+        "actions": [
+          {
+            "method_name": "rotate_agent",
+            "args": "eyJ0b2tlbl9pZCI6IjIiLCJuZXdfbmFtZSI6ImFuYWx5c3QtMWIiLCJwdWJrZXkiOiJlZDI1NTE5OlJFUExBQ0VfV0lUSF9ORVdfUFVCTElDX0tFWSJ9",
+            "deposit": "600000000000000000000000",
+            "gas": "150000000000000"
+          }
+        ]
+      }
+    }
+  }
+}

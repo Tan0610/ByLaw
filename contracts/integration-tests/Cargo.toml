@@ -1,0 +1,18 @@
+# near-workspaces sandbox suite for Charter (A10). Standalone workspace on purpose: it is NOT a
+# member of the root workspace, so `cargo test -p charter` stays fast and does not need the sandbox.
+# Run (Linux/macOS; needs network to download the neard sandbox on first run):
+#   cargo build --target wasm32-unknown-unknown --release -p charter -p mock-ft   (from repo root)
+#   cd contracts/integration-tests && cargo test -- --nocapture
+[package]
+name = "charter-integration-tests"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dev-dependencies]
+near-workspaces = { version = "0.20", features = ["unstable"] }
+tokio = { version = "1", features = ["full"] }
+serde_json = "1"
+anyhow = "1"

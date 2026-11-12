@@ -1,0 +1,16 @@
+[package]
+name = "charter"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Charter: an executable company constitution (agents, jobs, escrow, waterfall) on NEAR"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+near-sdk = "5"
+
+[dev-dependencies]
+near-sdk = { version = "5", features = ["unit-testing"] }
+proptest = "1"

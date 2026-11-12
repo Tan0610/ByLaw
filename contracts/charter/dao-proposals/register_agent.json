@@ -1,0 +1,25 @@
+{
+  "_comment": "Sputnik v2 add_proposal template for charter.register_agent. Replace charter.YOU.testnet and the example args, then recompute \"args\" = base64(JSON.stringify(args_json)). Call <dao>.sputnikv2.testnet add_proposal with this \"proposal\" object and the DAO proposal bond as deposit.",
+  "_args_json": {
+    "kind": "Analyst",
+    "name": "analyst-1",
+    "owner_account": "bob.testnet",
+    "pubkey": "ed25519:REPLACE_WITH_AGENT_PUBLIC_KEY"
+  },
+  "proposal": {
+    "description": "Charter: Create <name>.<charter> with a function-call key restricted to the role method_names; mint the agent NFT to owner_account. Deposit >= 0.5 NEAR funds the sub-account.",
+    "kind": {
+      "FunctionCall": {
+        "receiver_id": "charter.YOU.testnet",
+        "actions": [
+          {
+            "method_name": "register_agent",
+            "args": "eyJraW5kIjoiQW5hbHlzdCIsIm5hbWUiOiJhbmFseXN0LTEiLCJvd25lcl9hY2NvdW50IjoiYm9iLnRlc3RuZXQiLCJwdWJrZXkiOiJlZDI1NTE5OlJFUExBQ0VfV0lUSF9BR0VOVF9QVUJMSUNfS0VZIn0=",
+            "deposit": "600000000000000000000000",
+            "gas": "150000000000000"
+          }
+        ]
+      }
+    }
+  }
+}
