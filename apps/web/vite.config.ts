@@ -10,6 +10,10 @@ export default defineConfig({
   server: { fs: { allow: ["../.."] } },
   build: { chunkSizeWarningLimit: 1800 },
   define: { global: "globalThis" },
+  // Wallet libraries (Meteor's SDK via safe-buffer) need Node's Buffer. Browsers have none and Vite would stub
+  // the "buffer" module with an empty object, which makes wallet setup crash. Use the real npm "buffer" package.
+  resolve: { alias: [{ find: /^buffer$/, replacement: "buffer/" }] },
+  optimizeDeps: { esbuildOptions: { define: { global: "globalThis" } } },
   test: {
     environment: "jsdom",
     globals: true,

@@ -59,6 +59,8 @@ npm run dev -w apps/web                                             # VITE_INDEX
 ```
 Pages now read the real indexer and update over SSE as the agents work. Wallet writes in this mode go to testnet, not to the in-memory contract.
 
+**Wallets:** "Connect wallet" offers **Meteor Wallet** (signs in a popup; use a testnet account) and **MyNearWallet** (redirects). The wallet libraries need Node's `Buffer` and `process`, which browsers lack, so `apps/web/vite.config.ts` aliases `buffer` to the npm package and `src/main.tsx` provides both globals. Opening the picker and listing both wallets is checked in Chrome (dev and production build); a full sign-in and a transaction from the UI have not been tested yet.
+
 ### 4. Tests
 ```
 npm test -w apps/web          # 15 tests: customer, DAO, guardian, seats flows on mocks + a contract test against the real indexer

@@ -1,3 +1,4 @@
+import { Buffer } from "buffer";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
@@ -6,6 +7,12 @@ import App from "./App";
 import { USE_MOCKS } from "./lib/config";
 import { WalletProvider } from "./lib/wallet";
 import "./styles.css";
+
+// Some wallet code reads a global Buffer (as in Node); provide it before anything else runs.
+(globalThis as { Buffer?: typeof Buffer }).Buffer ??= Buffer;
+// ...and a minimal `process`, which the same libraries read at load time (Node-only global).
+const g = globalThis as { process?: unknown };
+g.process ??= { env: {}, browser: true, version: "", versions: {}, nextTick: (fn: (...a: unknown[]) => void, ...args: unknown[]) => queueMicrotask(() => fn(...args)) };
 
 async function boot() {
   if (USE_MOCKS) {
