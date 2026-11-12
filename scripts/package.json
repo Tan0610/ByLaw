@@ -1,0 +1,24 @@
+{
+  "name": "@charter/scripts",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "bootstrap": "tsx src/bootstrap-dao.ts",
+    "register-agents": "tsx src/register-agents.ts",
+    "mint-seats": "tsx src/mint-seats.ts",
+    "fund-treasury": "tsx src/fund-treasury.ts",
+    "e2e": "tsx e2e/run.ts",
+    "e2e:mock": "tsx e2e/run.ts --mock",
+    "test": "tsx --test e2e/run.test.ts",
+    "typecheck": "tsc --noEmit",
+    "fix-rollup": "node src/fix-rollup-windows.mjs"
+  },
+  "devDependencies": {
+    "@charter/indexer": "*",
+    "@charter/near-client": "*",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}
