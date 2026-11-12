@@ -1,0 +1,8 @@
+# AI disclosure
+
+Most code and documentation in this repository was written with AI assistance (Claude Code). Each lane appends a line below describing what was AI-generated and how it was verified.
+
+- Docs (PRD, architecture, contract spec, interfaces, tasks): AI-drafted, human-reviewed.
+- Lane B (packages/near-client, services/indexer, services/agents): code and tests AI-generated (Claude Code); verified by running the node:test suites (unit, REST contract, end-to-end on the in-memory FakeContract) and a read-only testnet RPC check of contractFacts; the real-network client path is untested against a deployed contract.
+- Lane C (apps/web, scripts, README, docs/demo, docs/TRACKS.md, docs/SPIKES.md, .env.example): written by Claude Code (AI). Verified by running `npm run build -w apps/web`, `npm test -w apps/web` (Vitest + Testing Library on MSW mocks, plus a contract test against the real indexer), `npm test -w scripts` and `npm run e2e:mock -w scripts`. Not verified on testnet (nothing deployed or signed). Libraries: React, Vite, TanStack Query, React Router, NEAR Wallet Selector, MSW, Vitest, Testing Library, tsx.
+- Lane A (contracts/charter, contracts/mock-ft, contracts/integration-tests, ABI.md, dao-proposals, deploy.md): code, tests and docs AI-generated (Claude Code). Verified by running `cargo test -p charter -p mock-ft` (charter 66 passed incl. 3 proptest properties; mock-ft 4 passed) and `cargo build --target wasm32-unknown-unknown --release -p charter -p mock-ft`. Not verified: the near-workspaces sandbox suite (written, unrun) and anything on testnet. Libraries: near-sdk 5, proptest, near-workspaces.
