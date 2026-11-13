@@ -1,0 +1,25 @@
+.git
+.github
+node_modules
+**/node_modules
+target
+dist
+**/dist
+wasm-artifacts
+secrets
+data
+.env
+.env.*
+!.env.example
+*.db
+*.db-shm
+*.db-wal
+.agent-ledger
+**/.agent-ledger
+# the backend needs only these workspaces; npm ci also needs the other workspaces' package.json to validate the lockfile
+apps/**
+!apps/web/package.json
+scripts/**
+!scripts/package.json
+contracts
+docs

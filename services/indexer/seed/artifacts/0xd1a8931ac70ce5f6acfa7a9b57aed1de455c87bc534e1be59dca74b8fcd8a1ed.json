@@ -1,0 +1,16 @@
+{
+  "schema": "bylaw.report.v1",
+  "target": "tan-bylaw-app.testnet",
+  "facts": {
+    "balance": "9996950968785317999999996",
+    "code_hash": "KZxYhoYEKB6iDP5ago95WYjzogNKP3B4zQhV2yC4BMz",
+    "fetched_at_block": 277351103,
+    "full_access_keys": 1,
+    "function_call_keys": 0,
+    "storage_usage": 397955,
+    "upgradeable": true
+  },
+  "summary": "tan-bylaw-app.testnet at block 277351103: Deployed code hash KZxYhoYEKB6iDP5ago95WYjzogNKP3B4zQhV2yC4BMz. It uses 397955 bytes of storage, holds 9996950968785317999999996 yoctoNEAR and has 1 full-access and 0 function-call access key(s). A full-access key exists, so the code can be redeployed or the account drained by its holder.",
+  "model": "template-v1",
+  "attestation": null
+}

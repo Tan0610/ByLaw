@@ -275,3 +275,32 @@ test('bylaw history is backfilled from the contract when the indexer starts afte
   assert.ok(h.body[1].diff.length > 0, 'the v1 -> v2 diff is available');
   assert.equal(h.body[0].text, fake.bylawHistory()[0].text, 'the backfilled v1 is the real original text');
 });
+
+test('seed reports are loaded under their computed hash; invalid or altered files never match a real hash', async () => {
+  const { mkdtempSync, writeFileSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const { loadSeedArtifacts } = await import('../src/index.ts');
+  const fake = new FakeContract({ clock: new ManualClock().now });
+  seedDemoWorld(fake);
+  const cfg = { contract_id: fake.contractId, dao_id: fake.ownerId, token_id: fake.tokenId };
+  const { app, db } = await createIndexerApp({ client: fake.as(null), cfg });
+
+  const good = { schema: 'bylaw.report.v1', target: 'x.testnet', facts: { code_hash: 'abc' }, summary: 's', model: 'template-v1', attestation: null };
+  const edited = { ...good, summary: 'someone changed this text' };
+  const dir = mkdtempSync(join(tmpdir(), 'seed-'));
+  writeFileSync(join(dir, 'a.json'), JSON.stringify(good));
+  writeFileSync(join(dir, 'b.json'), JSON.stringify(edited));
+  writeFileSync(join(dir, 'c.json'), '{not json');
+  writeFileSync(join(dir, 'd.json'), JSON.stringify({ schema: 'something.else' }));
+  writeFileSync(join(dir, 'note.txt'), 'ignored');
+  const r = loadSeedArtifacts(db, dir);
+  assert.deepEqual(r, { loaded: 2, skipped: 2 });
+
+  const hGood = artifactHash(good);
+  const hEdited = artifactHash(edited);
+  assert.notEqual(hGood, hEdited, 'an edited report has a different hash, so it can never match the on-chain one');
+  assert.equal((await get(app, `/artifacts/${hGood}`)).status, 200);
+  assert.equal((await get(app, `/artifacts/${hEdited}`)).status, 200);
+  assert.equal(loadSeedArtifacts(db, join(dir, 'missing')).loaded, 0, 'a missing seed folder is fine');
+});

@@ -1,0 +1,16 @@
+{
+  "schema": "bylaw.report.v1",
+  "target": "wrap.testnet",
+  "facts": {
+    "balance": "127311371844125715603740042632225",
+    "code_hash": "DsbyUrKaSJAT91Pewfi71QExPLBooDp1z4sL9GUDhNHa",
+    "fetched_at_block": 277349120,
+    "full_access_keys": 5,
+    "function_call_keys": 0,
+    "storage_usage": 20973646,
+    "upgradeable": true
+  },
+  "summary": "wrap.testnet at block 277349120: Deployed code hash DsbyUrKaSJAT91Pewfi71QExPLBooDp1z4sL9GUDhNHa. It uses 20973646 bytes of storage, holds 127311371844125715603740042632225 yoctoNEAR and has 5 full-access and 0 function-call access key(s). A full-access key exists, so the code can be redeployed or the account drained by its holder.",
+  "model": "template-v1",
+  "attestation": null
+}

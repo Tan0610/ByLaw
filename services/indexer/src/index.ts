@@ -11,6 +11,7 @@ export type { IndexerConfig, Ping } from './indexer.ts';
 export { buildServer } from './server.ts';
 export type { ServerOptions } from './server.ts';
 export { lineDiff } from './textdiff.ts';
+export { loadSeedArtifacts } from './seed.ts';
 
 /** Convenience: indexer + Fastify app over any ContractClient (used by main, tests and the demo stack). */
 export async function createIndexerApp(opts: {

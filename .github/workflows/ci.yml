@@ -43,3 +43,27 @@ jobs:
           name: wasm
           path: target/near/**/*.wasm
           if-no-files-found: error
+
+  container:
+    name: Backend container builds and serves live testnet data
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the repo Dockerfile
+        run: docker build -t bylaw-backend .
+      - name: Build the Hugging Face Space Dockerfile (fetches this exact commit from GitHub)
+        if: github.event_name == 'push'
+        run: docker build -f deploy/hf-space/Dockerfile --build-arg REPO_REF=${{ github.sha }} -t bylaw-hf deploy/hf-space
+      - name: Start it read-only (no keys) and check it serves the live contract
+        run: |
+          docker run -d --name backend -p 7860:7860 bylaw-backend
+          count() { curl -s -m 5 localhost:7860/agents | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s).length)}catch{console.log(0)}})'; }
+          ok=0
+          for i in $(seq 1 60); do [ "$(count)" = "5" ] && ok=1 && break; sleep 3; done
+          docker logs backend | tail -15
+          [ "$ok" = "1" ] || { echo "the backend never served the 5 live agents"; exit 1; }
+          curl -sf localhost:7860/health
+          for j in 1 2; do
+            h=$(curl -s localhost:7860/jobs/$j | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).deliverable.hash))')
+            curl -sf -o /dev/null "localhost:7860/artifacts/$h" && echo "job $j report served"
+          done

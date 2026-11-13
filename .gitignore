@@ -12,3 +12,4 @@ wasm-artifacts/
 *.db-shm
 *.db-wal
 .agent-ledger/
+data/

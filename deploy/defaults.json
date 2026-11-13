@@ -1,0 +1,18 @@
+{
+  "NEAR_NETWORK": "testnet",
+  "NEAR_RPC_URL": "https://near-testnet.drpc.org",
+  "BYLAW_CONTRACT_ID": "tan-bylaw-app.testnet",
+  "DAO_ID": "bylaw-dao.sputnikv2.testnet",
+  "TOKEN_ID": "tan-bylaw-tusd.testnet",
+  "INDEXER_MODE": "near",
+  "AGENTS_MODE": "near",
+  "POLL_MS": "10000",
+  "AGENT_TICK_MS": "15000",
+  "DATABASE_URL": "file:./data/indexer.db",
+  "TREASURER_VENDOR": "tan-bylaw-vendor.testnet",
+  "AGENT_SALES_ACCOUNT": "sales.tan-bylaw-app.testnet",
+  "AGENT_ANALYST1_ACCOUNT": "analyst1.tan-bylaw-app.testnet",
+  "AGENT_ANALYST2_ACCOUNT": "analyst2.tan-bylaw-app.testnet",
+  "AGENT_REVIEWER_ACCOUNT": "reviewer.tan-bylaw-app.testnet",
+  "AGENT_TREASURER_ACCOUNT": "treasurer.tan-bylaw-app.testnet"
+}

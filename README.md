@@ -61,6 +61,8 @@ Pages now read the real indexer and update over SSE as the agents work. Wallet w
 
 **Wallets:** "Connect wallet" offers **Meteor Wallet** (signs in a popup; use a testnet account) and **MyNearWallet** (redirects). The wallet libraries need Node's `Buffer` and `process`, which browsers lack, so `apps/web/vite.config.ts` aliases `buffer` to the npm package and `src/main.tsx` provides both globals. Opening the picker and listing both wallets is checked in Chrome (dev and production build); a full sign-in and a transaction from the UI have not been tested yet.
 
+**Hosting the live demo:** the website goes on Vercel and the indexer plus the five agents run in one container on a Hugging Face Space (Vercel cannot keep long-running processes). The container (`Dockerfile`, `deploy/`) reads the live testnet contract, bundles the reports of the settled jobs, and runs read-only unless the agents' keys are provided as secrets. Step-by-step: [`docs/DEPLOY.md`](docs/DEPLOY.md). CI builds both Dockerfiles and starts the container against the live testnet on every push.
+
 ### 4. Tests
 ```
 npm test -w apps/web          # 15 tests: customer, DAO, guardian, seats flows on mocks + a contract test against the real indexer

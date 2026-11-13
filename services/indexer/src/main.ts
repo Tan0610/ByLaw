@@ -1,7 +1,8 @@
 // Entry: `node src/main.ts [serve|reindex]`. Env: INDEXER_MODE=fake|near, DATABASE_URL, PORT, POLL_MS, see .env names in INTERFACES.md.
 import { FakeContract, NearContractClient, seedDemoWorld } from '@bylaw/near-client';
 import type { ContractClient } from '@bylaw/near-client';
-import { createIndexerApp, dbPathFromUrl } from './index.ts';
+import { fileURLToPath } from 'node:url';
+import { createIndexerApp, dbPathFromUrl, loadSeedArtifacts } from './index.ts';
 
 const env = process.env;
 const mode = (env.INDEXER_MODE ?? 'near').toLowerCase();
@@ -33,6 +34,9 @@ const { indexer, app, db } = await createIndexerApp({
     writeToken: env.INDEXER_WRITE_TOKEN || undefined, logger: false,
   },
 });
+
+const seeded = loadSeedArtifacts(db, env.SEED_ARTIFACTS_DIR || fileURLToPath(new URL('../seed/artifacts/', import.meta.url)));
+if (seeded.loaded || seeded.skipped) log('info', 'seed reports loaded', seeded);
 
 if (cmd === 'reindex') {
   const r = await indexer.reindex();
