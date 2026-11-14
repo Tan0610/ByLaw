@@ -61,7 +61,7 @@ If you leave the secrets out, the Space still works but is **read-only**: it ser
 - [ ] Jobs: jobs #1 and #2 are Settled, and each shows its **report** (not an error).
 - [ ] Treasury: the paid spends and the two rejected attacks are listed.
 - [ ] A direct link such as `<site>/jobs/1` opens (not a 404).
-- [ ] **Connect wallet** lists Meteor Wallet and MyNearWallet.
+- [ ] **Connect wallet** lists Meteor Wallet (the only wallet; MyNearWallet is retired).
 - [ ] `<backend>/health` lists all five agents under `agents_alive`.
 - [ ] (Needs your wallet) post a job from the site and watch it go Posted → Open → Awarded → Submitted → Settled in about 90 seconds.
 

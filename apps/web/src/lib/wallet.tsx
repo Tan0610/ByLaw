@@ -59,17 +59,16 @@ export function WalletProvider({ children, initialMockAccount }: { children: Rea
     let unsub: (() => void) | undefined;
     let cancelled = false;
     (async () => {
-      const [{ setupWalletSelector }, { setupModal }, { setupMyNearWallet }, { setupMeteorWallet }] = await Promise.all([
+      const [{ setupWalletSelector }, { setupModal }, { setupMeteorWallet }] = await Promise.all([
         import("@near-wallet-selector/core"),
         import("@near-wallet-selector/modal-ui"),
-        import("@near-wallet-selector/my-near-wallet"),
         import("@near-wallet-selector/meteor-wallet"),
       ]);
       await import("@near-wallet-selector/modal-ui/styles.css");
       const selector = (await setupWalletSelector({
         network: NETWORK,
-        // Meteor Wallet (wallet.meteorwallet.app) signs in a popup and returns the outcome; MyNearWallet redirects.
-        modules: [setupMeteorWallet(), setupMyNearWallet()],
+        // Meteor Wallet (wallet.meteorwallet.app) signs in a popup and returns the outcome. MyNearWallet is retired and refuses new app connections, so it is not offered.
+        modules: [setupMeteorWallet()],
       })) as unknown as SelectorLike;
       const modal = setupModal(selector as never, { contractId: ENV_CONTRACT_ID || "bylaw.testnet" }) as unknown as ModalLike;
       if (cancelled) return;
