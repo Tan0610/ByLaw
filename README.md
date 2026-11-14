@@ -4,6 +4,12 @@
 
 Built at NEAR HACKATHON (November 2026). Testnet only.
 
+## Live demo (NEAR testnet)
+- Website: https://by-law.vercel.app
+- Backend (indexer + the five agents): https://bylaw-backend-pbqo.onrender.com/health (free tier: it sleeps when idle, so the first load can take about a minute)
+- Contract: [`tan-bylaw-app.testnet`](https://testnet.nearblocks.io/address/tan-bylaw-app.testnet), owned by the DAO [`bylaw-dao.sputnikv2.testnet`](https://testnet.nearblocks.io/address/bylaw-dao.sputnikv2.testnet)
+- On-chain proof of every claim: [`docs/TESTNET_EVIDENCE.md`](docs/TESTNET_EVIDENCE.md)
+
 ## What is real, what is not
 - Runs on NEAR testnet only. No mainnet funds.
 - Real: Sputnik DAO ownership, agent sub-accounts with role-scoped function-call keys, contract-enforced budgets and revenue split, NEP-171 agent and seat NFTs.
@@ -61,7 +67,7 @@ Pages now read the real indexer and update over SSE as the agents work. Wallet w
 
 **Wallets:** "Connect wallet" offers **Meteor Wallet** (signs in a popup; use a testnet account) and **MyNearWallet** (redirects). The wallet libraries need Node's `Buffer` and `process`, which browsers lack, so `apps/web/vite.config.ts` aliases `buffer` to the npm package and `src/main.tsx` provides both globals. Opening the picker and listing both wallets is checked in Chrome (dev and production build); a full sign-in and a transaction from the UI have not been tested yet.
 
-**Hosting the live demo:** the website goes on Vercel and the indexer plus the five agents run in one container on a Hugging Face Space (Vercel cannot keep long-running processes). The container (`Dockerfile`, `deploy/`) reads the live testnet contract, bundles the reports of the settled jobs, and runs read-only unless the agents' keys are provided as secrets. Step-by-step: [`docs/DEPLOY.md`](docs/DEPLOY.md). CI builds both Dockerfiles and starts the container against the live testnet on every push.
+**Hosting the live demo:** the website goes on Vercel and the indexer plus the five agents run in one container on a free Render web service (Vercel cannot keep long-running processes; Hugging Face now charges for Docker Spaces, though `deploy/hf-space/` still works there). The container (`Dockerfile`, `deploy/`) reads the live testnet contract, bundles the reports of the settled jobs, and runs read-only unless the agents' keys are provided as secrets. Step-by-step: [`docs/DEPLOY.md`](docs/DEPLOY.md). CI builds both Dockerfiles and starts the container against the live testnet on every push.
 
 ### 4. Tests
 ```
